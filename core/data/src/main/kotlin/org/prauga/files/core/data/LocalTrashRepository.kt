@@ -49,6 +49,9 @@ constructor(
     override suspend fun deleteForever(id: String): FileOperationResult =
         withContext(dispatcher) { trash()?.deleteForever(id) ?: FileOperationResult.Failed }
 
+    override fun isTrash(path: String): Boolean =
+        storage.primaryRootPath()?.let { path == File(it, TRASH_FOLDER).path } ?: false
+
     private fun trash(): TrashFolder? =
         storage.primaryRootPath()?.let { TrashFolder(File(it, TRASH_FOLDER)) }
 

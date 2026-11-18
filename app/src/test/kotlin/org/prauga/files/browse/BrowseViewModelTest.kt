@@ -240,6 +240,19 @@ class BrowseViewModelTest {
         assertEquals(listOf(music.path to "Songs"), operations.renamed)
     }
 
+    @Test
+    fun theTrashFolderIsNotListed() = runTest {
+        val trashFolder = FileEntry.Directory("/storage/.trash-files", ".trash-files", 0L, 1)
+        val listings =
+            FakeDirectoryRepository(
+                mapOf("/storage" to DirectoryListing.Entries(listOf(trashFolder, music)))
+            )
+        val viewModel = viewModel(listings = listings)
+        collect(viewModel)
+
+        assertEquals(UiState.Success(listOf(music)), viewModel.state.value.content)
+    }
+
     private fun viewModel(
         root: String? = "/storage",
         listings: FakeDirectoryRepository = directories,
@@ -311,6 +324,8 @@ class BrowseViewModelTest {
 
         override suspend fun deleteForever(id: String): FileOperationResult =
             FileOperationResult.Done
+
+        override fun isTrash(path: String): Boolean = path == "/storage/.trash-files"
     }
 
     private class FakeDisplayOptionsRepository : DisplayOptionsRepository {

@@ -12,6 +12,7 @@ import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -42,6 +43,14 @@ class LocalTrashRepositoryTest {
 
         assertEquals(1, repository(atMillis = TimeUnit.DAYS.toMillis(29)).items()?.size)
         assertEquals(0, repository(atMillis = TimeUnit.DAYS.toMillis(31)).items()?.size)
+    }
+
+    @Test
+    fun knowsItsOwnFolder() = runTest {
+        val repository = repository(atMillis = 0)
+
+        assertTrue(repository.isTrash(File(folder.root, ".trash-files").path))
+        assertFalse(repository.isTrash(File(folder.root, "Download").path))
     }
 
     @Test

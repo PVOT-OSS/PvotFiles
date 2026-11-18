@@ -128,7 +128,8 @@ constructor(
             UiState.Error(message = "")
         } else {
             when (val listing = directories.list(current, includeHidden)) {
-                is DirectoryListing.Entries -> UiState.Success(listing.entries)
+                is DirectoryListing.Entries ->
+                    UiState.Success(listing.entries.filterNot { trash.isTrash(it.path) })
                 DirectoryListing.NotFound,
                 DirectoryListing.Unreadable -> UiState.Error(message = "")
             }

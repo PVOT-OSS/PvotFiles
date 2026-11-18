@@ -14,4 +14,6 @@ interface TrashRepository {
     suspend fun restore(id: String): FileOperationResult
 
     suspend fun deleteForever(id: String): FileOperationResult
+
+    fun isTrash(path: String): Boolean
 }
