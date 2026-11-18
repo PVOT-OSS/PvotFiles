@@ -21,6 +21,7 @@ import org.prauga.files.browse.BrowseScreen
 import org.prauga.files.category.CategoryScreen
 import org.prauga.files.core.model.FileCategory
 import org.prauga.files.home.HomeScreen
+import org.prauga.files.search.SearchScreen
 import org.prauga.files.trash.TrashScreen
 
 @Composable
@@ -43,6 +44,7 @@ private fun AppTabs() {
     tabStates.SaveableStateProvider(tab) {
         when (tab) {
             AppTab.Home -> HomeTab(onOpenDevice = { tab = AppTab.Browse }, bottomBar = navBar)
+            AppTab.Search -> SearchScreen(bottomBar = navBar)
             AppTab.Browse -> BrowseScreen(bottomBar = navBar)
         }
     }

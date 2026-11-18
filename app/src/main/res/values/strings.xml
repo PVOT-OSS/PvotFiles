@@ -10,7 +10,15 @@
     <string name="access_allow">Allow access</string>
 
     <string name="tab_home">Home</string>
+    <string name="tab_search">Search</string>
     <string name="tab_browse">Browse</string>
+    <string name="search_title">Search</string>
+    <string name="search_placeholder">Search files</string>
+    <string name="search_hint">Type part of a file name</string>
+    <string name="search_no_results">No files match</string>
+    <string name="search_clear">Clear search</string>
+    <string name="search_error_title">Couldn\'t search</string>
+    <string name="search_error_message">The storage isn\'t available right now.</string>
     <string name="home_title">Home</string>
     <string name="home_locations">Locations</string>
     <string name="home_storage_title">File storage</string>
