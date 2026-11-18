@@ -19,4 +19,6 @@ sealed interface BrowseEvent {
     data class SetLayout(val layout: ViewLayout) : BrowseEvent
 
     data class SetShowHidden(val show: Boolean) : BrowseEvent
+
+    data class CreateFolder(val name: String) : BrowseEvent
 }

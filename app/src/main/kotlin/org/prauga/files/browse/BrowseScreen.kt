@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,11 +40,14 @@ import com.prauga.pvot.designsystem.navigation.PvotTopBar
 import com.prauga.pvot.designsystem.navigation.PvotTopBarAction
 import com.prauga.pvot.designsystem.navigation.rememberPvotTopBarCompact
 import com.prauga.pvot.designsystem.theme.PvotSpacing
+import kotlinx.coroutines.flow.Flow
 import org.prauga.files.R
 import org.prauga.files.common.CenteredContent
 import org.prauga.files.common.FileActionsSheet
 import org.prauga.files.common.FileEntryRow
 import org.prauga.files.common.FileEntryTile
+import org.prauga.files.common.NameDialog
+import org.prauga.files.common.operationMessages
 import org.prauga.files.common.rememberFileLauncher
 import org.prauga.files.common.rememberGridTopBarCompact
 import org.prauga.files.core.model.FileEntry
@@ -53,12 +57,13 @@ import org.prauga.files.core.model.ViewLayout
 fun BrowseScreen(bottomBar: @Composable () -> Unit, viewModel: BrowseViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     BackHandler(enabled = state.canGoUp) { viewModel.onEvent(BrowseEvent.Up) }
-    BrowseContent(state, viewModel::onEvent, bottomBar)
+    BrowseContent(state, viewModel.effects, viewModel::onEvent, bottomBar)
 }
 
 @Composable
 private fun BrowseContent(
     state: BrowseUiState,
+    effects: Flow<BrowseEffect>,
     onEvent: (BrowseEvent) -> Unit,
     bottomBar: @Composable () -> Unit,
 ) {
@@ -74,6 +79,16 @@ private fun BrowseContent(
         }
     val snackbar = remember { SnackbarHostState() }
     val launcher = rememberFileLauncher(snackbar)
+    var newFolderVisible by rememberSaveable { mutableStateOf(false) }
+    val messages = operationMessages()
+    LaunchedEffect(effects) {
+        effects.collect { effect ->
+            when (effect) {
+                is BrowseEffect.OperationFailed ->
+                    snackbar.showSnackbar(messages.getValue(effect.result))
+            }
+        }
+    }
     var actionsPath by rememberSaveable { mutableStateOf<String?>(null) }
     val actionsFile =
         (state.content as? UiState.Success)?.data?.firstOrNull { it.path == actionsPath }
@@ -92,6 +107,13 @@ private fun BrowseContent(
                 onBack = if (state.canGoUp) ({ onEvent(BrowseEvent.Up) }) else null,
                 compact = compact,
             ) {
+                if (state.path != null) {
+                    PvotTopBarAction(
+                        icon = painterResource(R.drawable.ic_new_folder),
+                        contentDescription = stringResource(R.string.new_folder),
+                        onClick = { newFolderVisible = true },
+                    )
+                }
                 PvotTopBarAction(
                     icon = painterResource(R.drawable.ic_sort),
                     contentDescription = stringResource(R.string.options_title),
@@ -109,6 +131,17 @@ private fun BrowseContent(
                 onEvent = onEvent,
             )
             FileActionsSheet(actionsFile, launcher, onDismiss = { actionsPath = null })
+            NameDialog(
+                visible = newFolderVisible,
+                title = stringResource(R.string.new_folder),
+                confirmLabel = stringResource(R.string.create),
+                initialName = "",
+                onConfirm = {
+                    newFolderVisible = false
+                    onEvent(BrowseEvent.CreateFolder(it))
+                },
+                onDismiss = { newFolderVisible = false },
+            )
         },
     ) { padding ->
         when (val content = state.content) {

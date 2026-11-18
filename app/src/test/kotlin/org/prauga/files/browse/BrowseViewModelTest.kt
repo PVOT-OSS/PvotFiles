@@ -24,10 +24,12 @@ import org.junit.Before
 import org.junit.Test
 import org.prauga.files.core.data.DirectoryRepository
 import org.prauga.files.core.data.DisplayOptionsRepository
+import org.prauga.files.core.data.FileOperationsRepository
 import org.prauga.files.core.data.StorageRepository
 import org.prauga.files.core.model.DirectoryListing
 import org.prauga.files.core.model.DisplayOptions
 import org.prauga.files.core.model.FileEntry
+import org.prauga.files.core.model.FileOperationResult
 import org.prauga.files.core.model.SortOrder
 import org.prauga.files.core.model.ViewLayout
 
@@ -91,13 +93,7 @@ class BrowseViewModelTest {
     @Test
     fun unreadableFolderIsAnErrorAndRetryReloads() = runTest {
         val failing = FakeDirectoryRepository(mapOf("/storage" to DirectoryListing.Unreadable))
-        val viewModel =
-            BrowseViewModel(
-                SavedStateHandle(),
-                FakeStorageRepository("/storage"),
-                failing,
-                FakeDisplayOptionsRepository(),
-            )
+        val viewModel = viewModel(listings = failing)
         collect(viewModel)
         assertTrue(viewModel.state.value.content is UiState.Error)
 
@@ -119,22 +115,10 @@ class BrowseViewModelTest {
     @Test
     fun theOpenFolderSurvivesProcessDeath() = runTest {
         val saved = SavedStateHandle()
-        val first =
-            BrowseViewModel(
-                saved,
-                FakeStorageRepository("/storage"),
-                directories,
-                FakeDisplayOptionsRepository(),
-            )
+        val first = viewModel(saved = saved)
         first.onEvent(BrowseEvent.Open(music))
 
-        val restored =
-            BrowseViewModel(
-                saved,
-                FakeStorageRepository("/storage"),
-                directories,
-                FakeDisplayOptionsRepository(),
-            )
+        val restored = viewModel(saved = saved)
         collect(restored)
 
         assertEquals("Music", restored.state.value.folderName)
@@ -148,13 +132,7 @@ class BrowseViewModelTest {
             FakeDirectoryRepository(
                 mapOf("/storage" to DirectoryListing.Entries(listOf(large, small)))
             )
-        val viewModel =
-            BrowseViewModel(
-                SavedStateHandle(),
-                FakeStorageRepository("/storage"),
-                repository,
-                FakeDisplayOptionsRepository(),
-            )
+        val viewModel = viewModel(listings = repository)
         collect(viewModel)
         assertEquals(UiState.Success(listOf(small, large)), viewModel.state.value.content)
 
@@ -167,13 +145,7 @@ class BrowseViewModelTest {
 
     @Test
     fun showingHiddenFilesListsAgainWithThem() = runTest {
-        val viewModel =
-            BrowseViewModel(
-                SavedStateHandle(),
-                FakeStorageRepository("/storage"),
-                directories,
-                FakeDisplayOptionsRepository(),
-            )
+        val viewModel = viewModel()
         collect(viewModel)
 
         viewModel.onEvent(BrowseEvent.SetShowHidden(true))
@@ -192,10 +164,49 @@ class BrowseViewModelTest {
         assertEquals(ViewLayout.Grid, viewModel.state.value.options.layout)
     }
 
+    @Test
+    fun creatingAFolderListsAgain() = runTest {
+        val operations = FakeFileOperationsRepository()
+        val viewModel = viewModel(root = "/storage", operations = operations)
+        collect(viewModel)
+
+        viewModel.onEvent(BrowseEvent.CreateFolder("Trips"))
+
+        assertEquals(listOf("/storage" to "Trips"), operations.created)
+        assertEquals(listOf(false, false), directories.hiddenRequests)
+    }
+
+    @Test
+    fun aFailedOperationIsReported() = runTest {
+        val operations = FakeFileOperationsRepository(result = FileOperationResult.AlreadyExists)
+        val viewModel = viewModel(root = "/storage", operations = operations)
+        collect(viewModel)
+        val effects = mutableListOf<BrowseEffect>()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.effects.collect { effects += it }
+        }
+
+        viewModel.onEvent(BrowseEvent.CreateFolder("Music"))
+
+        assertEquals(
+            listOf(BrowseEffect.OperationFailed(FileOperationResult.AlreadyExists)),
+            effects,
+        )
+    }
+
     private fun viewModel(
-        root: String?,
-        options: DisplayOptionsRepository = FakeDisplayOptionsRepository(),
-    ) = BrowseViewModel(SavedStateHandle(), FakeStorageRepository(root), directories, options)
+        root: String? = "/storage",
+        listings: FakeDirectoryRepository = directories,
+        operations: FakeFileOperationsRepository = FakeFileOperationsRepository(),
+        saved: SavedStateHandle = SavedStateHandle(),
+    ) =
+        BrowseViewModel(
+            saved,
+            FakeStorageRepository(root),
+            listings,
+            FakeDisplayOptionsRepository(),
+            operations,
+        )
 
     private fun TestScope.collect(viewModel: BrowseViewModel) {
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
@@ -215,6 +226,19 @@ class BrowseViewModelTest {
             hiddenRequests += includeHidden
             return listings[path] ?: DirectoryListing.NotFound
         }
+    }
+
+    private class FakeFileOperationsRepository(
+        private val result: FileOperationResult = FileOperationResult.Done
+    ) : FileOperationsRepository {
+        val created = mutableListOf<Pair<String, String>>()
+
+        override suspend fun createFolder(parentPath: String, name: String): FileOperationResult {
+            created += parentPath to name
+            return result
+        }
+
+        override suspend fun rename(path: String, newName: String): FileOperationResult = result
     }
 
     private class FakeDisplayOptionsRepository : DisplayOptionsRepository {
