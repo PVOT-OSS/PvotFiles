@@ -7,4 +7,7 @@
     <external-path
         name="storage"
         path="." />
+    <root-path
+        name="volumes"
+        path="storage" />
 </paths>

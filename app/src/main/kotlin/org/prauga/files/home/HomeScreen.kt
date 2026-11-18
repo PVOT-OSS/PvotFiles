@@ -45,6 +45,7 @@ import org.prauga.files.core.model.FileCategory
 import org.prauga.files.core.model.FileEntry
 import org.prauga.files.core.model.StorageUsage
 import org.prauga.files.core.model.Tag
+import org.prauga.files.core.model.Volume
 
 @Composable
 fun HomeScreen(
@@ -61,6 +62,7 @@ fun HomeScreen(
     val recent by viewModel.recent.collectAsStateWithLifecycle()
     val favourites by viewModel.favouriteFolders.collectAsStateWithLifecycle()
     val tags by viewModel.tags.collectAsStateWithLifecycle()
+    val volumes by viewModel.removableVolumes.collectAsStateWithLifecycle()
     LifecycleResumeEffect(viewModel) {
         viewModel.onEvent(HomeEvent.Refresh)
         onPauseOrDispose {}
@@ -70,6 +72,7 @@ fun HomeScreen(
         recent = recent,
         favourites = favourites,
         tags = tags,
+        volumes = volumes,
         onEvent = viewModel::onEvent,
         onOpenDevice = onOpenDevice,
         onOpenFolder = onOpenFolder,
@@ -87,6 +90,7 @@ private fun HomeContent(
     recent: List<FileEntry.File>,
     favourites: List<String>,
     tags: List<Tag>,
+    volumes: List<Volume>,
     onEvent: (HomeEvent) -> Unit,
     onOpenDevice: () -> Unit,
     onOpenFolder: (String) -> Unit,
@@ -201,6 +205,22 @@ private fun HomeContent(
                             iconStyle = PvotRowIconStyle.Plain,
                             chevron = PvotRowChevron.Arrow,
                         )
+                    }
+                    volumes.forEach { volume ->
+                        item {
+                            PvotPreferenceRow(
+                                title = volume.label,
+                                onClick = { onOpenFolder(volume.path) },
+                                icon = {
+                                    Icon(
+                                        painterResource(R.drawable.ic_sd_card),
+                                        contentDescription = null,
+                                    )
+                                },
+                                iconStyle = PvotRowIconStyle.Plain,
+                                chevron = PvotRowChevron.Arrow,
+                            )
+                        }
                     }
                     item {
                         PvotPreferenceRow(

@@ -20,6 +20,7 @@ import org.junit.Before
 import org.junit.Test
 import org.prauga.files.core.data.FavouritesRepository
 import org.prauga.files.core.data.RecentFilesRepository
+import org.prauga.files.core.data.StorageRepository
 import org.prauga.files.core.data.StorageUsageRepository
 import org.prauga.files.core.data.TagsRepository
 import org.prauga.files.core.model.CategoryUsage
@@ -28,6 +29,7 @@ import org.prauga.files.core.model.FileEntry
 import org.prauga.files.core.model.FileOperationResult
 import org.prauga.files.core.model.StorageUsage
 import org.prauga.files.core.model.Tag
+import org.prauga.files.core.model.Volume
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class HomeViewModelTest {
@@ -55,6 +57,7 @@ class HomeViewModelTest {
                 recentFiles = FakeRecentFilesRepository(),
                 favourites = FakeFavouritesRepository(),
                 tags = FakeTagsRepository(),
+                storage = FakeStorageRepository(),
                 repository = FakeStorageUsageRepository { usage },
             )
 
@@ -70,6 +73,7 @@ class HomeViewModelTest {
                 recentFiles = FakeRecentFilesRepository(),
                 favourites = FakeFavouritesRepository(),
                 tags = FakeTagsRepository(),
+                storage = FakeStorageRepository(),
                 repository = FakeStorageUsageRepository { null },
             )
 
@@ -88,6 +92,7 @@ class HomeViewModelTest {
                 FakeRecentFilesRepository(),
                 FakeFavouritesRepository(),
                 FakeTagsRepository(),
+                FakeStorageRepository(),
             )
         viewModel.onEvent(HomeEvent.Refresh)
 
@@ -108,11 +113,48 @@ class HomeViewModelTest {
                 recentFiles = FakeRecentFilesRepository(listOf(file)),
                 favourites = FakeFavouritesRepository(),
                 tags = FakeTagsRepository(),
+                storage = FakeStorageRepository(),
             )
 
         viewModel.onEvent(HomeEvent.Refresh)
 
         assertEquals(listOf(file), viewModel.recent.value)
+    }
+
+    private class FakeStorageRepository : StorageRepository {
+        override fun primaryRootPath(): String? = "/storage/emulated/0"
+
+        override fun volumes(): List<Volume> =
+            listOf(
+                Volume(
+                    "/storage/emulated/0",
+                    "Internal",
+                    primary = true,
+                    mediaStoreName = "external_primary",
+                ),
+                Volume(
+                    "/storage/6200-0A16",
+                    "SD card",
+                    primary = false,
+                    mediaStoreName = "6200-0a16",
+                ),
+            )
+    }
+
+    @Test
+    fun refreshListsTheRemovableVolumes() = runTest {
+        val viewModel =
+            HomeViewModel(
+                repository = FakeStorageUsageRepository { usage },
+                recentFiles = FakeRecentFilesRepository(),
+                favourites = FakeFavouritesRepository(),
+                tags = FakeTagsRepository(),
+                storage = FakeStorageRepository(),
+            )
+
+        viewModel.onEvent(HomeEvent.Refresh)
+
+        assertEquals(listOf("SD card"), viewModel.removableVolumes.value.map { it.label })
     }
 
     private class FakeTagsRepository : TagsRepository {

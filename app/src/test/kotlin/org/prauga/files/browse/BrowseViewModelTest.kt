@@ -349,6 +349,40 @@ class BrowseViewModelTest {
         assertEquals("Music", viewModel.state.value.folderName)
     }
 
+    @Test
+    fun anotherVolumeIsItsOwnRoot() = runTest {
+        val sdFolder = FileEntry.Directory("/sd/DCIM", "DCIM", 0L, childCount = 0)
+        val listings =
+            FakeDirectoryRepository(
+                mapOf(
+                    "/storage" to DirectoryListing.Entries(listOf(music)),
+                    "/sd" to DirectoryListing.Entries(listOf(sdFolder)),
+                    "/sd/DCIM" to DirectoryListing.Entries(emptyList()),
+                )
+            )
+        val viewModel =
+            BrowseViewModel(
+                SavedStateHandle(),
+                FakeStorageRepository("/storage", extra = Volume("/sd", "SD card", false, "sd")),
+                listings,
+                FakeDisplayOptionsRepository(),
+                FakeFileOperationsRepository(),
+                FakeTrashRepository(),
+                FakeTransferQueue(),
+                FakeFavouritesRepository(),
+            )
+        collect(viewModel)
+
+        viewModel.onEvent(BrowseEvent.GoTo("/sd"))
+        assertEquals("SD card", viewModel.state.value.folderName)
+        assertFalse(viewModel.state.value.canGoUp)
+
+        viewModel.onEvent(BrowseEvent.Open(sdFolder))
+        viewModel.onEvent(BrowseEvent.Up)
+        viewModel.onEvent(BrowseEvent.Up)
+        assertEquals("SD card", viewModel.state.value.folderName)
+    }
+
     private fun viewModel(
         root: String? = "/storage",
         listings: FakeDirectoryRepository = directories,
@@ -375,14 +409,18 @@ class BrowseViewModelTest {
         }
     }
 
-    private class FakeStorageRepository(private val root: String?) : StorageRepository {
+    private class FakeStorageRepository(
+        private val root: String?,
+        private val extra: Volume? = null,
+    ) : StorageRepository {
         override fun primaryRootPath(): String? = root
 
         override fun volumes(): List<Volume> =
             listOfNotNull(
                 root?.let {
                     Volume(it, "Internal", primary = true, mediaStoreName = "external_primary")
-                }
+                },
+                extra,
             )
     }
 

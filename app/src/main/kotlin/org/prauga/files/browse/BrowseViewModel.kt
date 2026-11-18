@@ -35,7 +35,9 @@ import org.prauga.files.core.model.DisplayOptions
 import org.prauga.files.core.model.FileEntry
 import org.prauga.files.core.model.FileOperationResult
 import org.prauga.files.core.model.TransferKind
+import org.prauga.files.core.model.Volume
 import org.prauga.files.core.model.sortedFor
+import org.prauga.files.core.model.volumeOf
 import org.prauga.files.transfer.TransferQueue
 
 @HiltViewModel
@@ -43,7 +45,7 @@ class BrowseViewModel
 @Inject
 constructor(
     private val savedStateHandle: SavedStateHandle,
-    storage: StorageRepository,
+    private val storage: StorageRepository,
     private val directories: DirectoryRepository,
     private val displayOptions: DisplayOptionsRepository,
     private val operations: FileOperationsRepository,
@@ -53,8 +55,9 @@ constructor(
 ) : ViewModel() {
     private val effectChannel = Channel<BrowseEffect>(Channel.BUFFERED)
     val effects: Flow<BrowseEffect> = effectChannel.receiveAsFlow()
-    private val root: String? = storage.primaryRootPath()
-    private val path: StateFlow<String?> = savedStateHandle.getStateFlow(KEY_PATH, root)
+    private var volumes: List<Volume> = storage.volumes()
+    private val path: StateFlow<String?> =
+        savedStateHandle.getStateFlow(KEY_PATH, storage.primaryRootPath())
     private val attempt = MutableStateFlow(0)
     private val clipboardPaths =
         savedStateHandle.getStateFlow<List<String>>(KEY_CLIP_PATHS, emptyList())
@@ -124,11 +127,14 @@ constructor(
             is BrowseEvent.Open -> savedStateHandle[KEY_PATH] = event.directory.path
             BrowseEvent.Up -> {
                 val current = path.value
-                if (current != null && current != root) {
+                if (current != null && current != volumes.volumeOf(current)?.path) {
                     savedStateHandle[KEY_PATH] = File(current).parent
                 }
             }
-            BrowseEvent.Retry -> attempt.value++
+            BrowseEvent.Retry -> {
+                volumes = storage.volumes()
+                attempt.value++
+            }
             is BrowseEvent.SetSortOrder -> updateOptions { it.copy(sortOrder = event.order) }
             is BrowseEvent.SetLayout -> updateOptions { it.copy(layout = event.layout) }
             is BrowseEvent.SetShowHidden -> updateOptions { it.copy(showHidden = event.show) }
@@ -143,8 +149,10 @@ constructor(
             is BrowseEvent.Move -> setClipboard(listOf(event.path), TransferKind.Move)
             BrowseEvent.Paste -> paste()
             BrowseEvent.ClearClipboard -> setClipboard(emptyList(), null)
-            is BrowseEvent.GoTo ->
-                if (isInsideRoot(event.path)) savedStateHandle[KEY_PATH] = event.path
+            is BrowseEvent.GoTo -> {
+                volumes = storage.volumes()
+                if (volumes.volumeOf(event.path) != null) savedStateHandle[KEY_PATH] = event.path
+            }
             BrowseEvent.ToggleFavourite -> {
                 val current = path.value ?: return
                 val favourite = !state.value.favourite
@@ -153,9 +161,15 @@ constructor(
         }
     }
 
-    private fun isInsideRoot(target: String): Boolean {
-        val top = root ?: return false
-        return target == top || target.startsWith(top + File.separator)
+    private fun folderName(current: String?): String? {
+        if (current == null) return null
+        val volume = volumes.volumeOf(current)
+        return when {
+            volume == null -> File(current).name
+            current != volume.path -> File(current).name
+            volume.primary -> null
+            else -> volume.label
+        }
     }
 
     private fun setClipboard(paths: List<String>, kind: TransferKind?) {
@@ -214,8 +228,8 @@ constructor(
     ) =
         BrowseUiState(
             path = current,
-            folderName = if (current == null || current == root) null else File(current).name,
-            canGoUp = current != null && current != root,
+            folderName = folderName(current),
+            canGoUp = current != null && current != volumes.volumeOf(current)?.path,
             options = options,
             content =
                 if (content is UiState.Success)
