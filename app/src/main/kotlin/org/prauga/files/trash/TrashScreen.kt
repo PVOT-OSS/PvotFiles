@@ -30,7 +30,6 @@ import com.prauga.pvot.coreui.PvotEmptyContent
 import com.prauga.pvot.coreui.PvotErrorContent
 import com.prauga.pvot.coreui.PvotLoadingContent
 import com.prauga.pvot.coreui.UiState
-import com.prauga.pvot.designsystem.components.PvotBottomSheet
 import com.prauga.pvot.designsystem.components.PvotDialog
 import com.prauga.pvot.designsystem.components.PvotDialogAction
 import com.prauga.pvot.designsystem.components.PvotDialogActionStyle
@@ -46,6 +45,7 @@ import com.prauga.pvot.designsystem.theme.PvotSpacing
 import java.io.File
 import org.prauga.files.R
 import org.prauga.files.common.CenteredContent
+import org.prauga.files.common.FilesBottomSheet
 import org.prauga.files.common.operationMessages
 import org.prauga.files.core.model.TrashedItem
 
@@ -194,7 +194,7 @@ private fun ItemSheet(
     var shown by remember { mutableStateOf(item) }
     if (item != null) shown = item
     val target = shown
-    PvotBottomSheet(visible = item != null, onDismissRequest = onDismiss, title = target?.name) {
+    FilesBottomSheet(visible = item != null, onDismissRequest = onDismiss, title = target?.name) {
         if (target != null) {
             PvotSheetItem(
                 title = stringResource(R.string.trash_restore),

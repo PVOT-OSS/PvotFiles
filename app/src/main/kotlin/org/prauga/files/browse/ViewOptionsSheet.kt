@@ -12,11 +12,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
-import com.prauga.pvot.designsystem.components.PvotBottomSheet
 import com.prauga.pvot.designsystem.components.PvotSegmentedControl
 import com.prauga.pvot.designsystem.components.list.PvotSwitchRow
 import com.prauga.pvot.designsystem.theme.PvotSpacing
 import org.prauga.files.R
+import org.prauga.files.common.FilesBottomSheet
 import org.prauga.files.core.model.DisplayOptions
 import org.prauga.files.core.model.SortOrder
 import org.prauga.files.core.model.ViewLayout
@@ -28,7 +28,7 @@ fun ViewOptionsSheet(
     onDismiss: () -> Unit,
     onEvent: (BrowseEvent) -> Unit,
 ) {
-    PvotBottomSheet(
+    FilesBottomSheet(
         visible = visible,
         onDismissRequest = onDismiss,
         title = stringResource(R.string.options_title),
