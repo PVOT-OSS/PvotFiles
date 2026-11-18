@@ -37,4 +37,6 @@ internal abstract class DataModule {
     abstract fun fileOperationsRepository(
         repository: LocalFileOperationsRepository
     ): FileOperationsRepository
+
+    @Binds abstract fun trashRepository(repository: LocalTrashRepository): TrashRepository
 }

@@ -7,6 +7,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import java.time.Clock
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 
@@ -14,4 +15,6 @@ import kotlinx.coroutines.Dispatchers
 @InstallIn(SingletonComponent::class)
 internal object DispatchersModule {
     @Provides @IoDispatcher fun ioDispatcher(): CoroutineDispatcher = Dispatchers.IO
+
+    @Provides fun clock(): Clock = Clock.systemDefaultZone()
 }
