@@ -21,6 +21,7 @@ import org.prauga.files.browse.BrowseScreen
 import org.prauga.files.category.CategoryScreen
 import org.prauga.files.core.model.FileCategory
 import org.prauga.files.home.HomeScreen
+import org.prauga.files.trash.TrashScreen
 
 @Composable
 fun AppScaffold() {
@@ -50,13 +51,17 @@ private fun AppTabs() {
 @Composable
 private fun HomeTab(onOpenDevice: () -> Unit, bottomBar: @Composable () -> Unit) {
     var category by rememberSaveable { mutableStateOf<FileCategory?>(null) }
-    when (val open = category) {
-        null ->
+    var trashOpen by rememberSaveable { mutableStateOf(false) }
+    val open = category
+    when {
+        trashOpen -> TrashScreen(onBack = { trashOpen = false }, bottomBar = bottomBar)
+        open != null -> CategoryScreen(open, onBack = { category = null }, bottomBar = bottomBar)
+        else ->
             HomeScreen(
                 onOpenDevice = onOpenDevice,
                 onOpenCategory = { category = it },
+                onOpenTrash = { trashOpen = true },
                 bottomBar = bottomBar,
             )
-        else -> CategoryScreen(open, onBack = { category = null }, bottomBar = bottomBar)
     }
 }

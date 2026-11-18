@@ -36,6 +36,7 @@ import org.prauga.files.core.model.StorageUsage
 fun HomeScreen(
     onOpenDevice: () -> Unit,
     onOpenCategory: (FileCategory) -> Unit,
+    onOpenTrash: () -> Unit,
     bottomBar: @Composable () -> Unit,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
@@ -49,6 +50,7 @@ fun HomeScreen(
         onEvent = viewModel::onEvent,
         onOpenDevice = onOpenDevice,
         onOpenCategory = onOpenCategory,
+        onOpenTrash = onOpenTrash,
         bottomBar = bottomBar,
     )
 }
@@ -59,6 +61,7 @@ private fun HomeContent(
     onEvent: (HomeEvent) -> Unit,
     onOpenDevice: () -> Unit,
     onOpenCategory: (FileCategory) -> Unit,
+    onOpenTrash: () -> Unit,
     bottomBar: @Composable () -> Unit,
 ) {
     val barColors = PvotProportionBarDefaults.tonalColors()
@@ -116,6 +119,20 @@ private fun HomeContent(
                             icon = {
                                 Icon(
                                     painterResource(R.drawable.ic_folder),
+                                    contentDescription = null,
+                                )
+                            },
+                            iconStyle = PvotRowIconStyle.Plain,
+                            chevron = PvotRowChevron.Arrow,
+                        )
+                    }
+                    item {
+                        PvotPreferenceRow(
+                            title = stringResource(R.string.trash_title),
+                            onClick = onOpenTrash,
+                            icon = {
+                                Icon(
+                                    painterResource(R.drawable.ic_delete),
                                     contentDescription = null,
                                 )
                             },

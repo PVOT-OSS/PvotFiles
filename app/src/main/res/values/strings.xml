@@ -52,6 +52,17 @@
     <string name="rename_title">Rename</string>
     <string name="moved_to_trash">%1$s moved to Recently deleted</string>
     <string name="undo">Undo</string>
+    <string name="trash_title">Recently deleted</string>
+    <string name="trash_note">Items here are deleted forever after 30 days.</string>
+    <string name="trash_empty">Nothing has been deleted</string>
+    <string name="trash_item_details">Deleted %1$s · from %2$s</string>
+    <string name="trash_restore">Restore</string>
+    <string name="trash_restored">%1$s restored</string>
+    <string name="trash_delete_forever">Delete forever</string>
+    <string name="trash_delete_forever_title">Delete %1$s forever?</string>
+    <string name="trash_delete_forever_message">This can\'t be undone.</string>
+    <string name="trash_error_title">Couldn\'t open Recently deleted</string>
+    <string name="trash_error_message">The storage isn\'t available right now.</string>
     <string name="new_folder">New folder</string>
     <string name="create">Create</string>
     <string name="cancel">Cancel</string>
