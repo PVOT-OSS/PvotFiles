@@ -4,10 +4,12 @@
 package org.prauga.files.browse
 
 import com.prauga.pvot.coreui.UiState
+import org.prauga.files.core.model.DisplayOptions
 import org.prauga.files.core.model.FileEntry
 
 data class BrowseUiState(
     val folderName: String?,
     val canGoUp: Boolean,
+    val options: DisplayOptions,
     val content: UiState<List<FileEntry>>,
 )

@@ -4,6 +4,8 @@
 package org.prauga.files.browse
 
 import org.prauga.files.core.model.FileEntry
+import org.prauga.files.core.model.SortOrder
+import org.prauga.files.core.model.ViewLayout
 
 sealed interface BrowseEvent {
     data class Open(val directory: FileEntry.Directory) : BrowseEvent
@@ -11,4 +13,10 @@ sealed interface BrowseEvent {
     data object Up : BrowseEvent
 
     data object Retry : BrowseEvent
+
+    data class SetSortOrder(val order: SortOrder) : BrowseEvent
+
+    data class SetLayout(val layout: ViewLayout) : BrowseEvent
+
+    data class SetShowHidden(val show: Boolean) : BrowseEvent
 }

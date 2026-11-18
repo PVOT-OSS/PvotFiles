@@ -40,22 +40,30 @@ fun FileEntryRow(
                 onClick = { onOpenDirectory(entry) },
                 onClickLabel = stringResource(R.string.file_entry_open),
             )
-        is FileEntry.File -> {
-            val context = LocalContext.current
+        is FileEntry.File ->
             PvotListRow(
                 title = entry.name,
                 modifier = modifier,
-                supportingText =
-                    stringResource(
-                        R.string.file_entry_details,
-                        context.formatModified(entry.lastModifiedMillis),
-                        Formatter.formatShortFileSize(context, entry.sizeBytes),
-                    ),
+                supportingText = entry.summary(),
                 leading = { EntryIcon(R.drawable.ic_file) },
+            )
+    }
+}
+
+@Composable
+fun FileEntry.summary(): String =
+    when (this) {
+        is FileEntry.Directory ->
+            pluralStringResource(R.plurals.file_entry_folder_items, childCount, childCount)
+        is FileEntry.File -> {
+            val context = LocalContext.current
+            stringResource(
+                R.string.file_entry_details,
+                context.formatModified(lastModifiedMillis),
+                Formatter.formatShortFileSize(context, sizeBytes),
             )
         }
     }
-}
 
 @Composable
 private fun EntryIcon(@DrawableRes icon: Int) {

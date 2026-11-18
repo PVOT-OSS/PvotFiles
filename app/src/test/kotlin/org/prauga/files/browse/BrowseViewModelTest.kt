@@ -7,6 +7,9 @@ import androidx.lifecycle.SavedStateHandle
 import com.prauga.pvot.coreui.UiState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -20,9 +23,13 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.prauga.files.core.data.DirectoryRepository
+import org.prauga.files.core.data.DisplayOptionsRepository
 import org.prauga.files.core.data.StorageRepository
 import org.prauga.files.core.model.DirectoryListing
+import org.prauga.files.core.model.DisplayOptions
 import org.prauga.files.core.model.FileEntry
+import org.prauga.files.core.model.SortOrder
+import org.prauga.files.core.model.ViewLayout
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class BrowseViewModelTest {
@@ -85,7 +92,12 @@ class BrowseViewModelTest {
     fun unreadableFolderIsAnErrorAndRetryReloads() = runTest {
         val failing = FakeDirectoryRepository(mapOf("/storage" to DirectoryListing.Unreadable))
         val viewModel =
-            BrowseViewModel(SavedStateHandle(), FakeStorageRepository("/storage"), failing)
+            BrowseViewModel(
+                SavedStateHandle(),
+                FakeStorageRepository("/storage"),
+                failing,
+                FakeDisplayOptionsRepository(),
+            )
         collect(viewModel)
         assertTrue(viewModel.state.value.content is UiState.Error)
 
@@ -107,17 +119,83 @@ class BrowseViewModelTest {
     @Test
     fun theOpenFolderSurvivesProcessDeath() = runTest {
         val saved = SavedStateHandle()
-        val first = BrowseViewModel(saved, FakeStorageRepository("/storage"), directories)
+        val first =
+            BrowseViewModel(
+                saved,
+                FakeStorageRepository("/storage"),
+                directories,
+                FakeDisplayOptionsRepository(),
+            )
         first.onEvent(BrowseEvent.Open(music))
 
-        val restored = BrowseViewModel(saved, FakeStorageRepository("/storage"), directories)
+        val restored =
+            BrowseViewModel(
+                saved,
+                FakeStorageRepository("/storage"),
+                directories,
+                FakeDisplayOptionsRepository(),
+            )
         collect(restored)
 
         assertEquals("Music", restored.state.value.folderName)
     }
 
-    private fun viewModel(root: String?) =
-        BrowseViewModel(SavedStateHandle(), FakeStorageRepository(root), directories)
+    @Test
+    fun sortOrderReordersWithoutListingAgain() = runTest {
+        val small = FileEntry.File("/storage/a-small.txt", "a-small.txt", 0L, sizeBytes = 1)
+        val large = FileEntry.File("/storage/z-large.txt", "z-large.txt", 0L, sizeBytes = 9)
+        val repository =
+            FakeDirectoryRepository(
+                mapOf("/storage" to DirectoryListing.Entries(listOf(large, small)))
+            )
+        val viewModel =
+            BrowseViewModel(
+                SavedStateHandle(),
+                FakeStorageRepository("/storage"),
+                repository,
+                FakeDisplayOptionsRepository(),
+            )
+        collect(viewModel)
+        assertEquals(UiState.Success(listOf(small, large)), viewModel.state.value.content)
+
+        viewModel.onEvent(BrowseEvent.SetSortOrder(SortOrder.Size))
+
+        assertEquals(UiState.Success(listOf(large, small)), viewModel.state.value.content)
+        assertEquals(SortOrder.Size, viewModel.state.value.options.sortOrder)
+        assertEquals(1, repository.hiddenRequests.size)
+    }
+
+    @Test
+    fun showingHiddenFilesListsAgainWithThem() = runTest {
+        val viewModel =
+            BrowseViewModel(
+                SavedStateHandle(),
+                FakeStorageRepository("/storage"),
+                directories,
+                FakeDisplayOptionsRepository(),
+            )
+        collect(viewModel)
+
+        viewModel.onEvent(BrowseEvent.SetShowHidden(true))
+
+        assertEquals(listOf(false, true), directories.hiddenRequests)
+        assertTrue(viewModel.state.value.options.showHidden)
+    }
+
+    @Test
+    fun layoutIsPartOfTheState() = runTest {
+        val viewModel = viewModel(root = "/storage")
+        collect(viewModel)
+
+        viewModel.onEvent(BrowseEvent.SetLayout(ViewLayout.Grid))
+
+        assertEquals(ViewLayout.Grid, viewModel.state.value.options.layout)
+    }
+
+    private fun viewModel(
+        root: String?,
+        options: DisplayOptionsRepository = FakeDisplayOptionsRepository(),
+    ) = BrowseViewModel(SavedStateHandle(), FakeStorageRepository(root), directories, options)
 
     private fun TestScope.collect(viewModel: BrowseViewModel) {
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
@@ -131,7 +209,20 @@ class BrowseViewModelTest {
 
     private class FakeDirectoryRepository(var listings: Map<String, DirectoryListing>) :
         DirectoryRepository {
-        override suspend fun list(path: String, includeHidden: Boolean): DirectoryListing =
-            listings[path] ?: DirectoryListing.NotFound
+        val hiddenRequests = mutableListOf<Boolean>()
+
+        override suspend fun list(path: String, includeHidden: Boolean): DirectoryListing {
+            hiddenRequests += includeHidden
+            return listings[path] ?: DirectoryListing.NotFound
+        }
+    }
+
+    private class FakeDisplayOptionsRepository : DisplayOptionsRepository {
+        private val state = MutableStateFlow(DisplayOptions())
+        override val options: Flow<DisplayOptions> = state
+
+        override suspend fun update(transform: (DisplayOptions) -> DisplayOptions) {
+            state.update(transform)
+        }
     }
 }
