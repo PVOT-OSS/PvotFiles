@@ -12,5 +12,6 @@ dependencies {
     api(project(":core:model"))
     api(libs.kotlinx.coroutines.core)
     implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.exifinterface)
     testImplementation(libs.kotlinx.coroutines.test)
 }
