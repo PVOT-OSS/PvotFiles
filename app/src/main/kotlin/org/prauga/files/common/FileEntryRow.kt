@@ -16,6 +16,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import com.prauga.pvot.designsystem.components.list.PvotListRow
+import com.prauga.pvot.designsystem.components.list.PvotListRowDefaults
 import org.prauga.files.R
 import org.prauga.files.core.model.FileEntry
 
@@ -47,7 +48,11 @@ fun FileEntryRow(
                 title = entry.name,
                 modifier = modifier,
                 supportingText = entry.summary(),
-                leading = { EntryIcon(R.drawable.ic_file) },
+                leading = {
+                    FileThumbnail(entry, PvotListRowDefaults.LeadingSize) {
+                        EntryIcon(R.drawable.ic_file)
+                    }
+                },
                 onClick = { onClick(entry) },
                 onLongClick = { onLongClick(entry) },
                 onClickLabel = stringResource(R.string.file_entry_open),

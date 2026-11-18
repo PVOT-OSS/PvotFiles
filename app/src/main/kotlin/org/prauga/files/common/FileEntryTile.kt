@@ -43,14 +43,17 @@ fun FileEntryTile(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(PvotSpacing.XS),
     ) {
-        Icon(
-            painterResource(
-                if (entry is FileEntry.Directory) R.drawable.ic_folder else R.drawable.ic_file
-            ),
-            contentDescription = null,
-            modifier = Modifier.size(TileIconSize),
-            tint = MaterialTheme.colorScheme.primary,
-        )
+        val icon: @Composable () -> Unit = {
+            Icon(
+                painterResource(
+                    if (entry is FileEntry.Directory) R.drawable.ic_folder else R.drawable.ic_file
+                ),
+                contentDescription = null,
+                modifier = Modifier.size(TileIconSize),
+                tint = MaterialTheme.colorScheme.primary,
+            )
+        }
+        if (entry is FileEntry.File) FileThumbnail(entry, TileIconSize, icon) else icon()
         Text(
             entry.name,
             style = MaterialTheme.typography.bodyMedium,

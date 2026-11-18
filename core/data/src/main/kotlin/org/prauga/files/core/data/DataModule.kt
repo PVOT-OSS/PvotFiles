@@ -55,4 +55,7 @@ internal abstract class DataModule {
     ): FavouritesRepository
 
     @Binds abstract fun tagsRepository(repository: DataStoreTagsRepository): TagsRepository
+
+    @Binds
+    abstract fun thumbnailRepository(repository: LocalThumbnailRepository): ThumbnailRepository
 }
