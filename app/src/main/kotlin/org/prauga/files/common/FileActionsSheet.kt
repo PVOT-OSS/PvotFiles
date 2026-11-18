@@ -25,6 +25,7 @@ fun FileActionsSheet(
     onDelete: ((FileEntry) -> Unit)? = null,
     onCopy: ((FileEntry) -> Unit)? = null,
     onMove: ((FileEntry) -> Unit)? = null,
+    onTags: ((FileEntry) -> Unit)? = null,
 ) {
     var shown by remember { mutableStateOf(entry) }
     if (entry != null) shown = entry
@@ -50,6 +51,12 @@ fun FileActionsSheet(
             Action(R.string.action_move, R.drawable.ic_move) {
                 onDismiss()
                 onMove(target)
+            }
+        }
+        if (target != null && onTags != null) {
+            Action(R.string.action_tags, R.drawable.ic_tag) {
+                onDismiss()
+                onTags(target)
             }
         }
         if (target != null && onRename != null) {

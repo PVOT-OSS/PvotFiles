@@ -60,6 +60,15 @@
     <string name="action_open_with">Open with</string>
     <string name="action_share">Share</string>
     <string name="action_rename">Rename</string>
+    <string name="action_tags">Tags</string>
+    <string name="tag_new">New tag</string>
+    <string name="tag_applied">Tagged</string>
+    <string name="tag_color_red">Red</string>
+    <string name="tag_color_yellow">Yellow</string>
+    <string name="tag_color_green">Green</string>
+    <string name="tag_color_blue">Blue</string>
+    <string name="tag_color_purple">Purple</string>
+    <string name="tag_color_grey">Grey</string>
     <string name="action_delete">Delete</string>
     <string name="rename_title">Rename</string>
     <string name="moved_to_trash">%1$s moved to Recently deleted</string>

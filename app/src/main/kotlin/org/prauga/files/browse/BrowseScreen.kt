@@ -47,6 +47,7 @@ import com.prauga.pvot.designsystem.navigation.PvotTopBar
 import com.prauga.pvot.designsystem.navigation.PvotTopBarAction
 import com.prauga.pvot.designsystem.navigation.rememberPvotTopBarCompact
 import com.prauga.pvot.designsystem.theme.PvotSpacing
+import java.io.File
 import kotlinx.coroutines.flow.Flow
 import org.prauga.files.R
 import org.prauga.files.common.CenteredContent
@@ -60,6 +61,7 @@ import org.prauga.files.common.rememberGridTopBarCompact
 import org.prauga.files.common.transferMessages
 import org.prauga.files.core.model.FileEntry
 import org.prauga.files.core.model.ViewLayout
+import org.prauga.files.tags.TagPickerSheet
 
 @Composable
 fun BrowseScreen(
@@ -145,6 +147,7 @@ private fun BrowseContent(
     val entries = (state.content as? UiState.Success)?.data.orEmpty()
     var actionsPath by rememberSaveable { mutableStateOf<String?>(null) }
     var renamePath by rememberSaveable { mutableStateOf<String?>(null) }
+    var tagsPath by rememberSaveable { mutableStateOf<String?>(null) }
     val actionsEntry = entries.firstOrNull { it.path == actionsPath }
     val renameEntry = entries.firstOrNull { it.path == renamePath }
     val onLongClick: (FileEntry) -> Unit = { actionsPath = it.path }
@@ -215,6 +218,13 @@ private fun BrowseContent(
                 onDelete = { onEvent(BrowseEvent.Delete(it.path)) },
                 onCopy = { onEvent(BrowseEvent.Copy(it.path)) },
                 onMove = { onEvent(BrowseEvent.Move(it.path)) },
+                onTags = { tagsPath = it.path },
+            )
+            TagPickerSheet(
+                path = tagsPath,
+                name = tagsPath?.let { File(it).name },
+                snackbar = snackbar,
+                onDismiss = { tagsPath = null },
             )
             NameDialog(
                 visible = renameEntry != null,
