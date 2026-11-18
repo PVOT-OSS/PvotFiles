@@ -36,6 +36,7 @@ import org.prauga.files.core.model.SortOrder
 import org.prauga.files.core.model.TransferKind
 import org.prauga.files.core.model.TrashedItem
 import org.prauga.files.core.model.ViewLayout
+import org.prauga.files.core.model.Volume
 import org.prauga.files.transfer.TransferOutcome
 import org.prauga.files.transfer.TransferQueue
 import org.prauga.files.transfer.TransferUpdate
@@ -376,6 +377,13 @@ class BrowseViewModelTest {
 
     private class FakeStorageRepository(private val root: String?) : StorageRepository {
         override fun primaryRootPath(): String? = root
+
+        override fun volumes(): List<Volume> =
+            listOfNotNull(
+                root?.let {
+                    Volume(it, "Internal", primary = true, mediaStoreName = "external_primary")
+                }
+            )
     }
 
     private class FakeDirectoryRepository(var listings: Map<String, DirectoryListing>) :

@@ -19,6 +19,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.prauga.files.core.model.FileOperationResult
+import org.prauga.files.core.model.Volume
 
 class LocalTrashRepositoryTest {
     @get:Rule val folder = TemporaryFolder()
@@ -79,5 +80,12 @@ class LocalTrashRepositoryTest {
 
     private class FakeStorage(private val root: String?) : StorageRepository {
         override fun primaryRootPath(): String? = root
+
+        override fun volumes(): List<Volume> =
+            listOfNotNull(
+                root?.let {
+                    Volume(it, "Internal", primary = true, mediaStoreName = "external_primary")
+                }
+            )
     }
 }

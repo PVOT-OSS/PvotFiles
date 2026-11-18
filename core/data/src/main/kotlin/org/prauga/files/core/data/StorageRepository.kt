@@ -3,6 +3,10 @@
 
 package org.prauga.files.core.data
 
+import org.prauga.files.core.model.Volume
+
 interface StorageRepository {
     fun primaryRootPath(): String?
+
+    fun volumes(): List<Volume>
 }
