@@ -41,4 +41,6 @@ internal abstract class DataModule {
     @Binds abstract fun trashRepository(repository: LocalTrashRepository): TrashRepository
 
     @Binds abstract fun transferRepository(repository: LocalTransferRepository): TransferRepository
+
+    @Binds abstract fun searchRepository(repository: MediaStoreSearchRepository): SearchRepository
 }
