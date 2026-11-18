@@ -29,11 +29,11 @@
 
     <string name="browse_root_title">On my device</string>
     <string name="browse_empty">This folder is empty</string>
-    <string name="browse_open">Open</string>
+    <string name="file_entry_open">Open</string>
     <string name="browse_error_title">Couldn\'t open this folder</string>
     <string name="browse_error_message">It may have been moved, or the storage isn\'t available.</string>
-    <string name="browse_file_details">%1$s – %2$s</string>
-    <plurals name="browse_folder_items">
+    <string name="file_entry_details">%1$s – %2$s</string>
+    <plurals name="file_entry_folder_items">
         <item quantity="one">%d item</item>
         <item quantity="other">%d items</item>
     </plurals>

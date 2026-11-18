@@ -3,9 +3,6 @@
 
 package org.prauga.files.browse
 
-import android.content.Context
-import android.text.format.DateUtils
-import android.text.format.Formatter
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -13,15 +10,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -32,9 +24,9 @@ import com.prauga.pvot.coreui.UiState
 import com.prauga.pvot.designsystem.components.PvotScreen
 import com.prauga.pvot.designsystem.components.PvotScreenDefaults
 import com.prauga.pvot.designsystem.components.PvotScreenScaffold
-import com.prauga.pvot.designsystem.components.list.PvotListRow
 import com.prauga.pvot.designsystem.navigation.PvotTopBar
 import org.prauga.files.R
+import org.prauga.files.common.FileEntryRow
 import org.prauga.files.core.model.FileEntry
 
 @Composable
@@ -95,52 +87,12 @@ private fun EntryList(
     padding: PaddingValues,
     onOpen: (FileEntry.Directory) -> Unit,
 ) {
-    val context = LocalContext.current
     PvotScreen(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PvotScreenDefaults.contentPadding(top = padding.calculateTopPadding()),
     ) {
         items(entries, key = { it.path }) { entry ->
-            when (entry) {
-                is FileEntry.Directory ->
-                    PvotListRow(
-                        title = entry.name,
-                        modifier = Modifier.fillMaxWidth(),
-                        supportingText =
-                            pluralStringResource(
-                                R.plurals.browse_folder_items,
-                                entry.childCount,
-                                entry.childCount,
-                            ),
-                        leading = { EntryIcon(R.drawable.ic_folder) },
-                        onClick = { onOpen(entry) },
-                        onClickLabel = stringResource(R.string.browse_open),
-                    )
-                is FileEntry.File ->
-                    PvotListRow(
-                        title = entry.name,
-                        modifier = Modifier.fillMaxWidth(),
-                        supportingText =
-                            stringResource(
-                                R.string.browse_file_details,
-                                context.formatModified(entry.lastModifiedMillis),
-                                Formatter.formatShortFileSize(context, entry.sizeBytes),
-                            ),
-                        leading = { EntryIcon(R.drawable.ic_file) },
-                    )
-            }
+            FileEntryRow(entry, onOpenDirectory = onOpen, modifier = Modifier.fillMaxWidth())
         }
     }
-}
-
-@Composable
-private fun EntryIcon(icon: Int) {
-    Icon(painterResource(icon), contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-}
-
-private fun Context.formatModified(millis: Long): String {
-    val flags =
-        if (DateUtils.isToday(millis)) DateUtils.FORMAT_SHOW_TIME
-        else DateUtils.FORMAT_SHOW_DATE or DateUtils.FORMAT_ABBREV_MONTH
-    return DateUtils.formatDateTime(this, millis, flags)
 }
