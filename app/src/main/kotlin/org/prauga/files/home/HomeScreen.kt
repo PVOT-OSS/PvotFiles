@@ -33,6 +33,7 @@ import com.prauga.pvot.designsystem.components.list.PvotRowChevron
 import com.prauga.pvot.designsystem.components.list.PvotRowIconStyle
 import com.prauga.pvot.designsystem.components.progress.PvotProportionBarDefaults
 import com.prauga.pvot.designsystem.navigation.PvotTopBar
+import com.prauga.pvot.designsystem.navigation.PvotTopBarAction
 import com.prauga.pvot.designsystem.navigation.rememberPvotTopBarCompact
 import java.io.File
 import org.prauga.files.R
@@ -52,6 +53,7 @@ fun HomeScreen(
     onOpenCategory: (FileCategory) -> Unit,
     onOpenTrash: () -> Unit,
     onOpenTag: (String) -> Unit,
+    onOpenSettings: () -> Unit,
     bottomBar: @Composable () -> Unit,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
@@ -74,6 +76,7 @@ fun HomeScreen(
         onOpenCategory = onOpenCategory,
         onOpenTrash = onOpenTrash,
         onOpenTag = onOpenTag,
+        onOpenSettings = onOpenSettings,
         bottomBar = bottomBar,
     )
 }
@@ -90,6 +93,7 @@ private fun HomeContent(
     onOpenCategory: (FileCategory) -> Unit,
     onOpenTrash: () -> Unit,
     onOpenTag: (String) -> Unit,
+    onOpenSettings: () -> Unit,
     bottomBar: @Composable () -> Unit,
 ) {
     val barColors = PvotProportionBarDefaults.tonalColors()
@@ -99,7 +103,15 @@ private fun HomeContent(
     var actionsPath by rememberSaveable { mutableStateOf<String?>(null) }
     val compact = rememberPvotTopBarCompact(listState)
     PvotScreenScaffold(
-        topBar = { PvotTopBar(title = stringResource(R.string.home_title), compact = compact) },
+        topBar = {
+            PvotTopBar(title = stringResource(R.string.home_title), compact = compact) {
+                PvotTopBarAction(
+                    icon = painterResource(R.drawable.ic_settings),
+                    contentDescription = stringResource(R.string.settings_title),
+                    onClick = onOpenSettings,
+                )
+            }
+        },
         bottomBar = bottomBar,
         snackbarHost = { PvotSnackbarHost(snackbar) },
         overlay = {
