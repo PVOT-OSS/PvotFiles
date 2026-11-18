@@ -58,4 +58,9 @@ internal abstract class DataModule {
 
     @Binds
     abstract fun thumbnailRepository(repository: LocalThumbnailRepository): ThumbnailRepository
+
+    @Binds
+    abstract fun documentTreeRepository(
+        repository: SafDocumentTreeRepository
+    ): DocumentTreeRepository
 }

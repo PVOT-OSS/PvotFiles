@@ -34,4 +34,10 @@ internal object PreferencesModule {
     @TagsStore
     fun tags(@ApplicationContext context: Context): DataStore<Preferences> =
         PreferenceDataStoreFactory.create { context.preferencesDataStoreFile("tags") }
+
+    @Provides
+    @Singleton
+    @LocationsStore
+    fun locations(@ApplicationContext context: Context): DataStore<Preferences> =
+        PreferenceDataStoreFactory.create { context.preferencesDataStoreFile("locations") }
 }
