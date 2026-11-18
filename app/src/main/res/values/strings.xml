@@ -13,6 +13,19 @@
     <string name="tab_browse">Browse</string>
     <string name="home_title">Home</string>
     <string name="home_locations">Locations</string>
+    <string name="home_storage_title">File storage</string>
+    <string name="home_storage_used">%1$s of %2$s used</string>
+    <string name="home_category_details">%1$s · %2$s</string>
+    <plurals name="home_file_count">
+        <item quantity="one">%d file</item>
+        <item quantity="other">%d files</item>
+    </plurals>
+    <string name="home_error_title">Couldn\'t measure storage</string>
+    <string name="home_error_message">Try again in a moment.</string>
+    <string name="category_other">Files</string>
+    <string name="category_videos">Videos</string>
+    <string name="category_photos">Photos</string>
+    <string name="category_audio">Audio</string>
 
     <string name="browse_root_title">On my device</string>
     <string name="browse_empty">This folder is empty</string>

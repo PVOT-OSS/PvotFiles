@@ -10,4 +10,7 @@ data class StorageUsage(
 ) {
     val usedBytes: Long
         get() = totalBytes - freeBytes
+
+    val otherUsedBytes: Long
+        get() = (usedBytes - categories.sumOf { it.sizeBytes }).coerceAtLeast(0)
 }
