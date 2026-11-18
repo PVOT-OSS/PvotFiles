@@ -15,8 +15,8 @@ permission, so nothing you do in it leaves your phone.**
 
 ## What the app stores
 
-Only how you like to see your files: the sort order, list or grid view, and whether hidden files
-are shown. It is kept on your device. The app reads your files to show them; it keeps no copy of
+How you like to see your files (the sort order, list or grid view, and whether hidden files
+are shown) and the folders you mark as favourites. It is kept on your device. The app reads your files to show them; it keeps no copy of
 them and no list of what you open.
 
 Files you delete go to Recently deleted, a hidden `.trash-files` folder on your storage, with a
