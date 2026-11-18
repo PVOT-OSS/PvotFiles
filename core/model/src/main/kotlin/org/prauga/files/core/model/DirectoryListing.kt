@@ -1,0 +1,12 @@
+// SPDX-FileCopyrightText: 2026 Saalim Quadri <danascape@gmail.com>
+// SPDX-License-Identifier: Apache-2.0
+
+package org.prauga.files.core.model
+
+sealed interface DirectoryListing {
+    data class Entries(val entries: List<FileEntry>) : DirectoryListing
+
+    data object NotFound : DirectoryListing
+
+    data object Unreadable : DirectoryListing
+}
