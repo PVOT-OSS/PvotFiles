@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -81,19 +82,32 @@ private fun BrowseContent(
     val launcher = rememberFileLauncher(snackbar)
     var newFolderVisible by rememberSaveable { mutableStateOf(false) }
     val messages = operationMessages()
+    val trashedMessage = stringResource(R.string.moved_to_trash)
+    val undo = stringResource(R.string.undo)
     LaunchedEffect(effects) {
         effects.collect { effect ->
             when (effect) {
                 is BrowseEffect.OperationFailed ->
                     snackbar.showSnackbar(messages.getValue(effect.result))
+                is BrowseEffect.Trashed -> {
+                    val result =
+                        snackbar.showSnackbar(
+                            trashedMessage.format(effect.name),
+                            actionLabel = undo,
+                        )
+                    if (result == SnackbarResult.ActionPerformed) {
+                        onEvent(BrowseEvent.Restore(effect.trashId))
+                    }
+                }
             }
         }
     }
+    val entries = (state.content as? UiState.Success)?.data.orEmpty()
     var actionsPath by rememberSaveable { mutableStateOf<String?>(null) }
-    val actionsFile =
-        (state.content as? UiState.Success)?.data?.firstOrNull { it.path == actionsPath }
-            as? FileEntry.File
-    val onLongClick: (FileEntry.File) -> Unit = { actionsPath = it.path }
+    var renamePath by rememberSaveable { mutableStateOf<String?>(null) }
+    val actionsEntry = entries.firstOrNull { it.path == actionsPath }
+    val renameEntry = entries.firstOrNull { it.path == renamePath }
+    val onLongClick: (FileEntry) -> Unit = { actionsPath = it.path }
     val onClick: (FileEntry) -> Unit = { entry ->
         when (entry) {
             is FileEntry.Directory -> onEvent(BrowseEvent.Open(entry))
@@ -130,7 +144,24 @@ private fun BrowseContent(
                 onDismiss = { optionsVisible = false },
                 onEvent = onEvent,
             )
-            FileActionsSheet(actionsFile, launcher, onDismiss = { actionsPath = null })
+            FileActionsSheet(
+                actionsEntry,
+                launcher,
+                onDismiss = { actionsPath = null },
+                onRename = { renamePath = it.path },
+                onDelete = { onEvent(BrowseEvent.Delete(it.path)) },
+            )
+            NameDialog(
+                visible = renameEntry != null,
+                title = stringResource(R.string.rename_title),
+                confirmLabel = stringResource(R.string.action_rename),
+                initialName = renameEntry?.name.orEmpty(),
+                onConfirm = { name ->
+                    renameEntry?.let { onEvent(BrowseEvent.Rename(it.path, name)) }
+                    renamePath = null
+                },
+                onDismiss = { renamePath = null },
+            )
             NameDialog(
                 visible = newFolderVisible,
                 title = stringResource(R.string.new_folder),
@@ -177,7 +208,7 @@ private fun EntryList(
     state: LazyListState,
     padding: PaddingValues,
     onClick: (FileEntry) -> Unit,
-    onLongClick: (FileEntry.File) -> Unit,
+    onLongClick: (FileEntry) -> Unit,
 ) {
     PvotScreen(
         modifier = Modifier.fillMaxSize(),
@@ -196,7 +227,7 @@ private fun EntryGrid(
     state: LazyGridState,
     padding: PaddingValues,
     onClick: (FileEntry) -> Unit,
-    onLongClick: (FileEntry.File) -> Unit,
+    onLongClick: (FileEntry) -> Unit,
 ) {
     LazyVerticalGrid(
         columns = GridCells.Adaptive(GridCellMinWidth),

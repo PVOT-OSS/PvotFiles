@@ -47,10 +47,16 @@
     <string name="open_unavailable">This file can\'t be opened from here</string>
     <string name="action_open_with">Open with</string>
     <string name="action_share">Share</string>
+    <string name="action_rename">Rename</string>
+    <string name="action_delete">Delete</string>
+    <string name="rename_title">Rename</string>
+    <string name="moved_to_trash">%1$s moved to Recently deleted</string>
+    <string name="undo">Undo</string>
     <string name="new_folder">New folder</string>
     <string name="create">Create</string>
     <string name="cancel">Cancel</string>
     <string name="name_label">Name</string>
+    <string name="name_clear">Clear name</string>
     <string name="name_invalid">This name can\'t be used</string>
     <string name="operation_exists">Something with this name is already here</string>
     <string name="operation_failed">That didn\'t work. Check the storage and try again.</string>

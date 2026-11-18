@@ -28,6 +28,7 @@ import org.prauga.files.core.data.DirectoryRepository
 import org.prauga.files.core.data.DisplayOptionsRepository
 import org.prauga.files.core.data.FileOperationsRepository
 import org.prauga.files.core.data.StorageRepository
+import org.prauga.files.core.data.TrashRepository
 import org.prauga.files.core.model.DirectoryListing
 import org.prauga.files.core.model.DisplayOptions
 import org.prauga.files.core.model.FileEntry
@@ -43,6 +44,7 @@ constructor(
     private val directories: DirectoryRepository,
     private val displayOptions: DisplayOptionsRepository,
     private val operations: FileOperationsRepository,
+    private val trash: TrashRepository,
 ) : ViewModel() {
     private val effectChannel = Channel<BrowseEffect>(Channel.BUFFERED)
     val effects: Flow<BrowseEffect> = effectChannel.receiveAsFlow()
@@ -89,6 +91,21 @@ constructor(
             is BrowseEvent.CreateFolder -> {
                 val parent = path.value ?: return
                 perform { operations.createFolder(parent, event.name) }
+            }
+            is BrowseEvent.Rename -> perform { operations.rename(event.path, event.newName) }
+            is BrowseEvent.Delete -> delete(event.path)
+            is BrowseEvent.Restore -> perform { trash.restore(event.trashId) }
+        }
+    }
+
+    private fun delete(target: String) {
+        viewModelScope.launch {
+            val id = trash.moveToTrash(target)
+            if (id == null) {
+                effectChannel.send(BrowseEffect.OperationFailed(FileOperationResult.Failed))
+            } else {
+                attempt.value++
+                effectChannel.send(BrowseEffect.Trashed(id, File(target).name))
             }
         }
     }

@@ -7,4 +7,6 @@ import org.prauga.files.core.model.FileOperationResult
 
 sealed interface BrowseEffect {
     data class OperationFailed(val result: FileOperationResult) : BrowseEffect
+
+    data class Trashed(val trashId: String, val name: String) : BrowseEffect
 }

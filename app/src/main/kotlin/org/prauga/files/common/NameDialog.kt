@@ -4,6 +4,8 @@
 package org.prauga.files.common
 
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -14,6 +16,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import com.prauga.pvot.designsystem.components.PvotDialog
 import com.prauga.pvot.designsystem.components.PvotDialogAction
@@ -48,6 +51,19 @@ fun NameDialog(
                 supportingText =
                     if (valid || name.isEmpty()) null else stringResource(R.string.name_invalid),
                 isError = !valid && name.isNotEmpty(),
+                trailingIcon =
+                    if (name.isEmpty()) {
+                        null
+                    } else {
+                        {
+                            IconButton(onClick = { name = "" }) {
+                                Icon(
+                                    painterResource(R.drawable.ic_clear),
+                                    contentDescription = stringResource(R.string.name_clear),
+                                )
+                            }
+                        }
+                    },
                 singleLine = true,
             )
         },

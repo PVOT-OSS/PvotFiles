@@ -3,6 +3,7 @@
 
 package org.prauga.files.common
 
+import androidx.annotation.DrawableRes
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -17,28 +18,53 @@ import org.prauga.files.R
 import org.prauga.files.core.model.FileEntry
 
 @Composable
-fun FileActionsSheet(file: FileEntry.File?, launcher: FileLauncher, onDismiss: () -> Unit) {
-    var shown by remember { mutableStateOf(file) }
-    if (file != null) shown = file
+fun FileActionsSheet(
+    entry: FileEntry?,
+    launcher: FileLauncher,
+    onDismiss: () -> Unit,
+    onRename: ((FileEntry) -> Unit)? = null,
+    onDelete: ((FileEntry) -> Unit)? = null,
+) {
+    var shown by remember { mutableStateOf(entry) }
+    if (entry != null) shown = entry
     val target = shown
-    PvotBottomSheet(visible = file != null, onDismissRequest = onDismiss, title = target?.name) {
-        if (target != null) {
-            PvotSheetItem(
-                title = stringResource(R.string.action_open_with),
-                onClick = {
-                    launcher.openWith(target)
-                    onDismiss()
-                },
-                icon = { Icon(painterResource(R.drawable.ic_open_with), contentDescription = null) },
-            )
-            PvotSheetItem(
-                title = stringResource(R.string.action_share),
-                onClick = {
-                    launcher.share(target)
-                    onDismiss()
-                },
-                icon = { Icon(painterResource(R.drawable.ic_share), contentDescription = null) },
-            )
+    PvotBottomSheet(visible = entry != null, onDismissRequest = onDismiss, title = target?.name) {
+        if (target is FileEntry.File) {
+            Action(R.string.action_open_with, R.drawable.ic_open_with) {
+                launcher.openWith(target)
+                onDismiss()
+            }
+            Action(R.string.action_share, R.drawable.ic_share) {
+                launcher.share(target)
+                onDismiss()
+            }
+        }
+        if (target != null && onRename != null) {
+            Action(R.string.action_rename, R.drawable.ic_rename) {
+                onDismiss()
+                onRename(target)
+            }
+        }
+        if (target != null && onDelete != null) {
+            Action(R.string.action_delete, R.drawable.ic_delete, destructive = true) {
+                onDismiss()
+                onDelete(target)
+            }
         }
     }
+}
+
+@Composable
+private fun Action(
+    title: Int,
+    @DrawableRes icon: Int,
+    destructive: Boolean = false,
+    onClick: () -> Unit,
+) {
+    PvotSheetItem(
+        title = stringResource(title),
+        onClick = onClick,
+        icon = { Icon(painterResource(icon), contentDescription = null) },
+        destructive = destructive,
+    )
 }

@@ -29,13 +29,13 @@ import org.prauga.files.core.model.FileEntry
 fun FileEntryTile(
     entry: FileEntry,
     onClick: (FileEntry) -> Unit,
-    onLongClick: (FileEntry.File) -> Unit,
+    onLongClick: (FileEntry) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val clickable =
         Modifier.combinedClickable(
             onClickLabel = stringResource(R.string.file_entry_open),
-            onLongClick = if (entry is FileEntry.File) ({ onLongClick(entry) }) else null,
+            onLongClick = { onLongClick(entry) },
             onClick = { onClick(entry) },
         )
     Column(

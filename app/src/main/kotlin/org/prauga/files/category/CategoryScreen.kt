@@ -94,7 +94,7 @@ fun CategoryScreen(
                             FileEntryRow(
                                 file,
                                 onClick = { launcher.open(file) },
-                                onLongClick = { actionsPath = it.path },
+                                onLongClick = { entry -> actionsPath = entry.path },
                                 modifier = Modifier.fillMaxWidth(),
                             )
                         }

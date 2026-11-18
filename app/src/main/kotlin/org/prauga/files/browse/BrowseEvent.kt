@@ -21,4 +21,10 @@ sealed interface BrowseEvent {
     data class SetShowHidden(val show: Boolean) : BrowseEvent
 
     data class CreateFolder(val name: String) : BrowseEvent
+
+    data class Rename(val path: String, val newName: String) : BrowseEvent
+
+    data class Delete(val path: String) : BrowseEvent
+
+    data class Restore(val trashId: String) : BrowseEvent
 }

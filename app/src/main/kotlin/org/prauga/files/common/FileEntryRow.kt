@@ -23,7 +23,7 @@ import org.prauga.files.core.model.FileEntry
 fun FileEntryRow(
     entry: FileEntry,
     onClick: (FileEntry) -> Unit,
-    onLongClick: (FileEntry.File) -> Unit,
+    onLongClick: (FileEntry) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     when (entry) {
@@ -39,6 +39,7 @@ fun FileEntryRow(
                     ),
                 leading = { EntryIcon(R.drawable.ic_folder) },
                 onClick = { onClick(entry) },
+                onLongClick = { onLongClick(entry) },
                 onClickLabel = stringResource(R.string.file_entry_open),
             )
         is FileEntry.File ->

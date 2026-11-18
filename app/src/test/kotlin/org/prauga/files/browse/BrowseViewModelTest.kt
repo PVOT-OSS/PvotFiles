@@ -26,11 +26,13 @@ import org.prauga.files.core.data.DirectoryRepository
 import org.prauga.files.core.data.DisplayOptionsRepository
 import org.prauga.files.core.data.FileOperationsRepository
 import org.prauga.files.core.data.StorageRepository
+import org.prauga.files.core.data.TrashRepository
 import org.prauga.files.core.model.DirectoryListing
 import org.prauga.files.core.model.DisplayOptions
 import org.prauga.files.core.model.FileEntry
 import org.prauga.files.core.model.FileOperationResult
 import org.prauga.files.core.model.SortOrder
+import org.prauga.files.core.model.TrashedItem
 import org.prauga.files.core.model.ViewLayout
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -194,11 +196,56 @@ class BrowseViewModelTest {
         )
     }
 
+    @Test
+    fun deletingMovesToTheTrashAndOffersUndo() = runTest {
+        val trash = FakeTrashRepository()
+        val viewModel = viewModel(trash = trash)
+        collect(viewModel)
+        val effects = mutableListOf<BrowseEffect>()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.effects.collect { effects += it }
+        }
+
+        viewModel.onEvent(BrowseEvent.Delete(music.path))
+        viewModel.onEvent(BrowseEvent.Restore("id-1"))
+
+        assertEquals(listOf(music.path), trash.trashed)
+        assertEquals(listOf("id-1"), trash.restored)
+        assertEquals(listOf(BrowseEffect.Trashed("id-1", "Music")), effects)
+        assertEquals(listOf(false, false, false), directories.hiddenRequests)
+    }
+
+    @Test
+    fun aDeleteThatFailsIsReported() = runTest {
+        val viewModel = viewModel(trash = FakeTrashRepository(id = null))
+        collect(viewModel)
+        val effects = mutableListOf<BrowseEffect>()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.effects.collect { effects += it }
+        }
+
+        viewModel.onEvent(BrowseEvent.Delete(music.path))
+
+        assertEquals(listOf(BrowseEffect.OperationFailed(FileOperationResult.Failed)), effects)
+    }
+
+    @Test
+    fun renameIsForwarded() = runTest {
+        val operations = FakeFileOperationsRepository()
+        val viewModel = viewModel(operations = operations)
+        collect(viewModel)
+
+        viewModel.onEvent(BrowseEvent.Rename(music.path, "Songs"))
+
+        assertEquals(listOf(music.path to "Songs"), operations.renamed)
+    }
+
     private fun viewModel(
         root: String? = "/storage",
         listings: FakeDirectoryRepository = directories,
         operations: FakeFileOperationsRepository = FakeFileOperationsRepository(),
         saved: SavedStateHandle = SavedStateHandle(),
+        trash: FakeTrashRepository = FakeTrashRepository(),
     ) =
         BrowseViewModel(
             saved,
@@ -206,6 +253,7 @@ class BrowseViewModelTest {
             listings,
             FakeDisplayOptionsRepository(),
             operations,
+            trash,
         )
 
     private fun TestScope.collect(viewModel: BrowseViewModel) {
@@ -232,13 +280,37 @@ class BrowseViewModelTest {
         private val result: FileOperationResult = FileOperationResult.Done
     ) : FileOperationsRepository {
         val created = mutableListOf<Pair<String, String>>()
+        val renamed = mutableListOf<Pair<String, String>>()
 
         override suspend fun createFolder(parentPath: String, name: String): FileOperationResult {
             created += parentPath to name
             return result
         }
 
-        override suspend fun rename(path: String, newName: String): FileOperationResult = result
+        override suspend fun rename(path: String, newName: String): FileOperationResult {
+            renamed += path to newName
+            return result
+        }
+    }
+
+    private class FakeTrashRepository(private val id: String? = "id-1") : TrashRepository {
+        val trashed = mutableListOf<String>()
+        val restored = mutableListOf<String>()
+
+        override suspend fun moveToTrash(path: String): String? {
+            trashed += path
+            return id
+        }
+
+        override suspend fun items(): List<TrashedItem>? = emptyList()
+
+        override suspend fun restore(id: String): FileOperationResult {
+            restored += id
+            return FileOperationResult.Done
+        }
+
+        override suspend fun deleteForever(id: String): FileOperationResult =
+            FileOperationResult.Done
     }
 
     private class FakeDisplayOptionsRepository : DisplayOptionsRepository {
