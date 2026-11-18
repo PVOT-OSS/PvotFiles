@@ -97,13 +97,19 @@ private fun BrowseContent(
         rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
             onEvent(BrowseEvent.Paste)
         }
+    var askedNotifications by rememberSaveable { mutableStateOf(false) }
     val paste = {
-        val asked =
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+        val ask =
+            !askedNotifications &&
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
                 context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) !=
                     PackageManager.PERMISSION_GRANTED
-        if (asked) requestNotifications.launch(Manifest.permission.POST_NOTIFICATIONS)
-        else onEvent(BrowseEvent.Paste)
+        if (ask) {
+            askedNotifications = true
+            requestNotifications.launch(Manifest.permission.POST_NOTIFICATIONS)
+        } else {
+            onEvent(BrowseEvent.Paste)
+        }
     }
     LaunchedEffect(effects) {
         effects.collect { effect ->
