@@ -3,8 +3,10 @@
 
 package org.prauga.files.common
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -31,6 +33,7 @@ fun FileEntryTile(
     onClick: (FileEntry) -> Unit,
     onLongClick: (FileEntry) -> Unit,
     modifier: Modifier = Modifier,
+    selected: Boolean = false,
 ) {
     val clickable =
         Modifier.combinedClickable(
@@ -39,7 +42,17 @@ fun FileEntryTile(
             onClick = { onClick(entry) },
         )
     Column(
-        modifier.clip(PvotShapes.Card).then(clickable).padding(PvotSpacing.S),
+        modifier
+            .clip(PvotShapes.Card)
+            .then(
+                if (selected)
+                    Modifier.background(
+                        MaterialTheme.colorScheme.primary.copy(alpha = SelectedAlpha)
+                    )
+                else Modifier
+            )
+            .then(clickable)
+            .padding(PvotSpacing.S),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(PvotSpacing.XS),
     ) {
@@ -53,7 +66,14 @@ fun FileEntryTile(
                 tint = MaterialTheme.colorScheme.primary,
             )
         }
-        if (entry is FileEntry.File) FileThumbnail(entry, TileIconSize, icon) else icon()
+        when {
+            selected ->
+                Box(Modifier.size(TileIconSize), contentAlignment = Alignment.Center) {
+                    SelectedMark()
+                }
+            entry is FileEntry.File -> FileThumbnail(entry, TileIconSize, icon)
+            else -> icon()
+        }
         Text(
             entry.name,
             style = MaterialTheme.typography.bodyMedium,
@@ -73,3 +93,5 @@ fun FileEntryTile(
 }
 
 private val TileIconSize = 56.dp
+
+private const val SelectedAlpha = 0.14f

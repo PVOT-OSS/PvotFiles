@@ -213,11 +213,11 @@ class BrowseViewModelTest {
         }
 
         viewModel.onEvent(BrowseEvent.Delete(music.path))
-        viewModel.onEvent(BrowseEvent.Restore("id-1"))
+        viewModel.onEvent(BrowseEvent.Restore(listOf("id-1")))
 
         assertEquals(listOf(music.path), trash.trashed)
         assertEquals(listOf("id-1"), trash.restored)
-        assertEquals(listOf(BrowseEffect.Trashed("id-1", "Music")), effects)
+        assertEquals(listOf(BrowseEffect.Trashed(listOf("id-1"), listOf("Music"))), effects)
         assertEquals(listOf(false, false, false), directories.hiddenRequests)
     }
 
@@ -381,6 +381,59 @@ class BrowseViewModelTest {
         viewModel.onEvent(BrowseEvent.Up)
         viewModel.onEvent(BrowseEvent.Up)
         assertEquals("SD card", viewModel.state.value.folderName)
+    }
+
+    @Test
+    fun selectingCopiesAndClearsTheSelection() = runTest {
+        val viewModel = viewModel()
+        collect(viewModel)
+
+        viewModel.onEvent(BrowseEvent.ToggleSelection(music.path))
+        assertEquals(setOf(music.path), viewModel.state.value.selection)
+        viewModel.onEvent(BrowseEvent.CopySelection)
+
+        assertEquals(
+            Clipboard(listOf(music.path), TransferKind.Copy),
+            viewModel.state.value.clipboard,
+        )
+        assertEquals(emptySet<String>(), viewModel.state.value.selection)
+    }
+
+    @Test
+    fun selectAllAndToggleOff() = runTest {
+        val viewModel = viewModel()
+        collect(viewModel)
+
+        viewModel.onEvent(BrowseEvent.SelectAll)
+        assertEquals(setOf(music.path), viewModel.state.value.selection)
+
+        viewModel.onEvent(BrowseEvent.ToggleSelection(music.path))
+        assertEquals(emptySet<String>(), viewModel.state.value.selection)
+    }
+
+    @Test
+    fun deletingTheSelectionTrashesEachItemOnce() = runTest {
+        val trash = FakeTrashRepository()
+        val viewModel = viewModel(trash = trash)
+        collect(viewModel)
+
+        viewModel.onEvent(BrowseEvent.ToggleSelection(music.path))
+        viewModel.onEvent(BrowseEvent.ToggleSelection("/storage/other"))
+        viewModel.onEvent(BrowseEvent.DeleteSelection)
+
+        assertEquals(listOf(music.path, "/storage/other"), trash.trashed)
+        assertEquals(emptySet<String>(), viewModel.state.value.selection)
+    }
+
+    @Test
+    fun openingAFolderClearsTheSelection() = runTest {
+        val viewModel = viewModel()
+        collect(viewModel)
+
+        viewModel.onEvent(BrowseEvent.ToggleSelection(music.path))
+        viewModel.onEvent(BrowseEvent.Open(music))
+
+        assertEquals(emptySet<String>(), viewModel.state.value.selection)
     }
 
     private fun viewModel(

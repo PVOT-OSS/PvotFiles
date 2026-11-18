@@ -6,7 +6,7 @@ package org.prauga.files.tags
 import org.prauga.files.core.model.Tag
 
 sealed interface TagPickerEvent {
-    data class Show(val path: String?) : TagPickerEvent
+    data class Show(val paths: List<String>) : TagPickerEvent
 
     data class Toggle(val tagName: String) : TagPickerEvent
 

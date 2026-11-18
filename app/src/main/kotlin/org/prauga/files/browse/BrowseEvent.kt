@@ -26,7 +26,19 @@ sealed interface BrowseEvent {
 
     data class Delete(val path: String) : BrowseEvent
 
-    data class Restore(val trashId: String) : BrowseEvent
+    data class Restore(val trashIds: List<String>) : BrowseEvent
+
+    data class ToggleSelection(val path: String) : BrowseEvent
+
+    data object SelectAll : BrowseEvent
+
+    data object ClearSelection : BrowseEvent
+
+    data object CopySelection : BrowseEvent
+
+    data object MoveSelection : BrowseEvent
+
+    data object DeleteSelection : BrowseEvent
 
     data class Copy(val path: String) : BrowseEvent
 

@@ -29,17 +29,24 @@ constructor(
     private val savedStateHandle: SavedStateHandle,
     private val repository: TagsRepository,
 ) : ViewModel() {
-    private val path: StateFlow<String?> = savedStateHandle.getStateFlow(KEY_PATH, null)
+    private val paths: StateFlow<List<String>> =
+        savedStateHandle.getStateFlow(KEY_PATHS, emptyList())
     private val failureChannel = Channel<FileOperationResult>(Channel.BUFFERED)
     val failures: Flow<FileOperationResult> = failureChannel.receiveAsFlow()
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val state: StateFlow<TagPickerUiState> =
         combine(
-                path,
+                paths,
                 repository.tags,
-                path.flatMapLatest { current ->
-                    current?.let(repository::tagsOf) ?: flowOf(emptySet())
+                paths.flatMapLatest { current ->
+                    if (current.isEmpty()) {
+                        flowOf(emptySet())
+                    } else {
+                        combine(current.map(repository::tagsOf)) { sets ->
+                            sets.reduce { all, next -> all intersect next }
+                        }
+                    }
                 },
             ) { current, tags, selected ->
                 TagPickerUiState(current, tags, selected)
@@ -47,22 +54,24 @@ constructor(
             .stateIn(
                 viewModelScope,
                 SharingStarted.WhileSubscribed(5_000),
-                TagPickerUiState(null, emptyList(), emptySet()),
+                TagPickerUiState(emptyList(), emptyList(), emptySet()),
             )
 
     fun onEvent(event: TagPickerEvent) {
         when (event) {
-            is TagPickerEvent.Show -> savedStateHandle[KEY_PATH] = event.path
+            is TagPickerEvent.Show -> savedStateHandle[KEY_PATHS] = event.paths
             is TagPickerEvent.Toggle -> {
-                val current = path.value ?: return
+                val current = paths.value
                 val tagged = event.tagName !in state.value.selected
-                viewModelScope.launch { repository.setTagged(current, event.tagName, tagged) }
+                viewModelScope.launch {
+                    current.forEach { repository.setTagged(it, event.tagName, tagged) }
+                }
             }
             is TagPickerEvent.Create ->
                 viewModelScope.launch {
                     when (val result = repository.createTag(event.tag)) {
                         FileOperationResult.Done ->
-                            path.value?.let { repository.setTagged(it, event.tag.name, true) }
+                            paths.value.forEach { repository.setTagged(it, event.tag.name, true) }
                         else -> failureChannel.send(result)
                     }
                 }
@@ -70,6 +79,6 @@ constructor(
     }
 
     private companion object {
-        const val KEY_PATH = "tag_path"
+        const val KEY_PATHS = "tag_paths"
     }
 }

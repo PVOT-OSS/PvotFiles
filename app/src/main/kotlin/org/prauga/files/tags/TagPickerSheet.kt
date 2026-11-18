@@ -26,8 +26,8 @@ import org.prauga.files.common.operationMessages
 
 @Composable
 fun TagPickerSheet(
-    path: String?,
-    name: String?,
+    paths: List<String>,
+    title: String?,
     snackbar: SnackbarHostState,
     onDismiss: () -> Unit,
     viewModel: TagPickerViewModel = hiltViewModel(),
@@ -35,11 +35,11 @@ fun TagPickerSheet(
     val state by viewModel.state.collectAsStateWithLifecycle()
     var creating by rememberSaveable { mutableStateOf(false) }
     val messages = operationMessages()
-    LaunchedEffect(path) { if (path != null) viewModel.onEvent(TagPickerEvent.Show(path)) }
+    LaunchedEffect(paths) { if (paths.isNotEmpty()) viewModel.onEvent(TagPickerEvent.Show(paths)) }
     LaunchedEffect(viewModel) {
         viewModel.failures.collect { snackbar.showSnackbar(messages.getValue(it)) }
     }
-    FilesBottomSheet(visible = path != null, onDismissRequest = onDismiss, title = name) {
+    FilesBottomSheet(visible = paths.isNotEmpty(), onDismissRequest = onDismiss, title = title) {
         state.tags.forEach { tag ->
             val selected = tag.name in state.selected
             PvotListRow(

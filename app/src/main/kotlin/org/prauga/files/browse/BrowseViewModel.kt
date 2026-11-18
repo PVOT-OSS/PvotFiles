@@ -62,6 +62,7 @@ constructor(
     private val clipboardPaths =
         savedStateHandle.getStateFlow<List<String>>(KEY_CLIP_PATHS, emptyList())
     private val clipboardKind = savedStateHandle.getStateFlow<String?>(KEY_CLIP_KIND, null)
+    private val selection = savedStateHandle.getStateFlow<List<String>>(KEY_SELECTION, emptyList())
     private val clipboard: StateFlow<Clipboard?> =
         combine(clipboardPaths, clipboardKind) { paths, kind ->
                 TransferKind.entries
@@ -95,6 +96,7 @@ constructor(
             .combine(favourites.favourites) { state, saved ->
                 state.copy(favourite = state.path in saved)
             }
+            .combine(selection) { state, selected -> state.copy(selection = selected.toSet()) }
             .stateIn(
                 viewModelScope,
                 SharingStarted.WhileSubscribed(5_000),
@@ -124,10 +126,14 @@ constructor(
 
     fun onEvent(event: BrowseEvent) {
         when (event) {
-            is BrowseEvent.Open -> savedStateHandle[KEY_PATH] = event.directory.path
+            is BrowseEvent.Open -> {
+                select(emptyList())
+                savedStateHandle[KEY_PATH] = event.directory.path
+            }
             BrowseEvent.Up -> {
                 val current = path.value
                 if (current != null && current != volumes.volumeOf(current)?.path) {
+                    select(emptyList())
                     savedStateHandle[KEY_PATH] = File(current).parent
                 }
             }
@@ -143,15 +149,38 @@ constructor(
                 perform { operations.createFolder(parent, event.name) }
             }
             is BrowseEvent.Rename -> perform { operations.rename(event.path, event.newName) }
-            is BrowseEvent.Delete -> delete(event.path)
-            is BrowseEvent.Restore -> perform { trash.restore(event.trashId) }
+            is BrowseEvent.Delete -> delete(listOf(event.path))
+            is BrowseEvent.Restore -> perform { restoreAll(event.trashIds) }
+            is BrowseEvent.ToggleSelection ->
+                select(
+                    if (event.path in selection.value) selection.value - event.path
+                    else selection.value + event.path
+                )
+            BrowseEvent.SelectAll -> select(currentEntries().map { it.path })
+            BrowseEvent.ClearSelection -> select(emptyList())
+            BrowseEvent.CopySelection -> {
+                setClipboard(selection.value, TransferKind.Copy)
+                select(emptyList())
+            }
+            BrowseEvent.MoveSelection -> {
+                setClipboard(selection.value, TransferKind.Move)
+                select(emptyList())
+            }
+            BrowseEvent.DeleteSelection -> {
+                val targets = selection.value
+                select(emptyList())
+                delete(targets)
+            }
             is BrowseEvent.Copy -> setClipboard(listOf(event.path), TransferKind.Copy)
             is BrowseEvent.Move -> setClipboard(listOf(event.path), TransferKind.Move)
             BrowseEvent.Paste -> paste()
             BrowseEvent.ClearClipboard -> setClipboard(emptyList(), null)
             is BrowseEvent.GoTo -> {
                 volumes = storage.volumes()
-                if (volumes.volumeOf(event.path) != null) savedStateHandle[KEY_PATH] = event.path
+                if (volumes.volumeOf(event.path) != null) {
+                    select(emptyList())
+                    savedStateHandle[KEY_PATH] = event.path
+                }
             }
             BrowseEvent.ToggleFavourite -> {
                 val current = path.value ?: return
@@ -184,17 +213,35 @@ constructor(
         setClipboard(emptyList(), null)
     }
 
-    private fun delete(target: String) {
+    private fun delete(targets: List<String>) {
+        if (targets.isEmpty()) return
         viewModelScope.launch {
-            val id = trash.moveToTrash(target)
-            if (id == null) {
-                effectChannel.send(BrowseEffect.OperationFailed(FileOperationResult.Failed))
-            } else {
+            val trashed =
+                targets.mapNotNull { target ->
+                    trash.moveToTrash(target)?.let { it to File(target).name }
+                }
+            if (trashed.isNotEmpty()) {
                 attempt.value++
-                effectChannel.send(BrowseEffect.Trashed(id, File(target).name))
+                effectChannel.send(
+                    BrowseEffect.Trashed(trashed.map { it.first }, trashed.map { it.second })
+                )
+            }
+            if (trashed.size < targets.size) {
+                effectChannel.send(BrowseEffect.OperationFailed(FileOperationResult.Failed))
             }
         }
     }
+
+    private suspend fun restoreAll(ids: List<String>): FileOperationResult =
+        ids.map { trash.restore(it) }.firstOrNull { it != FileOperationResult.Done }
+            ?: FileOperationResult.Done
+
+    private fun select(paths: List<String>) {
+        savedStateHandle[KEY_SELECTION] = paths
+    }
+
+    private fun currentEntries(): List<FileEntry> =
+        (state.value.content as? UiState.Success)?.data.orEmpty()
 
     private fun perform(operation: suspend () -> FileOperationResult) {
         viewModelScope.launch {
@@ -241,5 +288,6 @@ constructor(
         const val KEY_PATH = "path"
         const val KEY_CLIP_PATHS = "clipboard_paths"
         const val KEY_CLIP_KIND = "clipboard_kind"
+        const val KEY_SELECTION = "selection"
     }
 }

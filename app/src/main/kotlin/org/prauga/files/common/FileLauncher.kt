@@ -40,6 +40,20 @@ class FileLauncher(
         shareUri(uriFor(file) ?: return, mimeTypeOf(file))
     }
 
+    fun shareAll(files: List<FileEntry.File>) {
+        val uris = files.mapNotNull(::uriFor)
+        if (uris.isEmpty()) return
+        val send =
+            Intent(Intent.ACTION_SEND_MULTIPLE)
+                .setType(
+                    if (files.map(::mimeTypeOf).distinct().size == 1) mimeTypeOf(files.first())
+                    else "*/*"
+                )
+                .putParcelableArrayListExtra(Intent.EXTRA_STREAM, ArrayList(uris))
+                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        start(Intent.createChooser(send, null))
+    }
+
     fun openUri(uri: Uri, mimeType: String) {
         start(viewIntent(uri, mimeType))
     }

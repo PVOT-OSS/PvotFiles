@@ -5,4 +5,8 @@ package org.prauga.files.tags
 
 import org.prauga.files.core.model.Tag
 
-data class TagPickerUiState(val path: String?, val tags: List<Tag>, val selected: Set<String>)
+data class TagPickerUiState(
+    val paths: List<String>,
+    val tags: List<Tag>,
+    val selected: Set<String>,
+)

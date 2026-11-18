@@ -30,7 +30,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -72,6 +74,9 @@ fun BrowseScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     BackHandler(enabled = state.canGoUp) { viewModel.onEvent(BrowseEvent.Up) }
+    BackHandler(enabled = state.selection.isNotEmpty()) {
+        viewModel.onEvent(BrowseEvent.ClearSelection)
+    }
     LaunchedEffect(openPath) {
         if (openPath != null) {
             viewModel.onEvent(BrowseEvent.GoTo(openPath))
@@ -105,6 +110,7 @@ private fun BrowseContent(
     val trashedMessage = stringResource(R.string.moved_to_trash)
     val undo = stringResource(R.string.undo)
     val transferMessages = transferMessages()
+    val resources = LocalResources.current
     val context = LocalContext.current
     val requestNotifications =
         rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
@@ -132,13 +138,19 @@ private fun BrowseContent(
                 is BrowseEffect.TransferFinished ->
                     snackbar.showSnackbar(transferMessages.getValue(effect.kind to effect.outcome))
                 is BrowseEffect.Trashed -> {
-                    val result =
-                        snackbar.showSnackbar(
-                            trashedMessage.format(effect.name),
-                            actionLabel = undo,
-                        )
+                    val message =
+                        if (effect.names.size == 1) {
+                            trashedMessage.format(effect.names.first())
+                        } else {
+                            resources.getQuantityString(
+                                R.plurals.moved_to_trash_count,
+                                effect.names.size,
+                                effect.names.size,
+                            )
+                        }
+                    val result = snackbar.showSnackbar(message, actionLabel = undo)
                     if (result == SnackbarResult.ActionPerformed) {
-                        onEvent(BrowseEvent.Restore(effect.trashId))
+                        onEvent(BrowseEvent.Restore(effect.trashIds))
                     }
                 }
             }
@@ -150,45 +162,68 @@ private fun BrowseContent(
     var tagsPath by rememberSaveable { mutableStateOf<String?>(null) }
     val actionsEntry = entries.firstOrNull { it.path == actionsPath }
     val renameEntry = entries.firstOrNull { it.path == renamePath }
-    val onLongClick: (FileEntry) -> Unit = { actionsPath = it.path }
+    val selecting = state.selection.isNotEmpty()
+    var selectionSheet by rememberSaveable { mutableStateOf(false) }
+    var tagSelection by rememberSaveable { mutableStateOf(false) }
+    val onLongClick: (FileEntry) -> Unit = { onEvent(BrowseEvent.ToggleSelection(it.path)) }
+    val onMore: (FileEntry) -> Unit = { actionsPath = it.path }
     val onClick: (FileEntry) -> Unit = { entry ->
-        when (entry) {
-            is FileEntry.Directory -> onEvent(BrowseEvent.Open(entry))
-            is FileEntry.File -> launcher.open(entry)
+        when {
+            selecting -> onEvent(BrowseEvent.ToggleSelection(entry.path))
+            entry is FileEntry.Directory -> onEvent(BrowseEvent.Open(entry))
+            entry is FileEntry.File -> launcher.open(entry)
         }
     }
     PvotScreenScaffold(
         topBar = {
-            PvotTopBar(
-                title = state.folderName ?: stringResource(R.string.browse_root_title),
-                onBack = if (state.canGoUp) ({ onEvent(BrowseEvent.Up) }) else null,
-                compact = compact,
-            ) {
-                if (state.path != null) {
+            if (selecting) {
+                SelectionTopBar(
+                    count = state.selection.size,
+                    compact = compact,
+                    onClear = { onEvent(BrowseEvent.ClearSelection) },
+                    onSelectAll = { onEvent(BrowseEvent.SelectAll) },
+                    onShare = {
+                        launcher.shareAll(
+                            entries.filterIsInstance<FileEntry.File>().filter {
+                                it.path in state.selection
+                            }
+                        )
+                    },
+                    onDelete = { onEvent(BrowseEvent.DeleteSelection) },
+                    onMore = { selectionSheet = true },
+                )
+            } else {
+                PvotTopBar(
+                    title = state.folderName ?: stringResource(R.string.browse_root_title),
+                    onBack = if (state.canGoUp) ({ onEvent(BrowseEvent.Up) }) else null,
+                    compact = compact,
+                ) {
+                    if (state.path != null) {
+                        PvotTopBarAction(
+                            icon =
+                                painterResource(
+                                    if (state.favourite) R.drawable.ic_star
+                                    else R.drawable.ic_star_border
+                                ),
+                            contentDescription =
+                                stringResource(
+                                    if (state.favourite) R.string.favourite_remove
+                                    else R.string.favourite_add
+                                ),
+                            onClick = { onEvent(BrowseEvent.ToggleFavourite) },
+                        )
+                        PvotTopBarAction(
+                            icon = painterResource(R.drawable.ic_new_folder),
+                            contentDescription = stringResource(R.string.new_folder),
+                            onClick = { newFolderVisible = true },
+                        )
+                    }
                     PvotTopBarAction(
-                        icon =
-                            painterResource(
-                                if (state.favourite) R.drawable.ic_star
-                                else R.drawable.ic_star_border
-                            ),
-                        contentDescription =
-                            stringResource(
-                                if (state.favourite) R.string.favourite_remove
-                                else R.string.favourite_add
-                            ),
-                        onClick = { onEvent(BrowseEvent.ToggleFavourite) },
-                    )
-                    PvotTopBarAction(
-                        icon = painterResource(R.drawable.ic_new_folder),
-                        contentDescription = stringResource(R.string.new_folder),
-                        onClick = { newFolderVisible = true },
+                        icon = painterResource(R.drawable.ic_sort),
+                        contentDescription = stringResource(R.string.options_title),
+                        onClick = { optionsVisible = true },
                     )
                 }
-                PvotTopBarAction(
-                    icon = painterResource(R.drawable.ic_sort),
-                    contentDescription = stringResource(R.string.options_title),
-                    onClick = { optionsVisible = true },
-                )
             }
         },
         bottomBar = bottomBar,
@@ -221,10 +256,25 @@ private fun BrowseContent(
                 onTags = { tagsPath = it.path },
             )
             TagPickerSheet(
-                path = tagsPath,
-                name = tagsPath?.let { File(it).name },
+                paths =
+                    when {
+                        tagSelection -> state.selection.toList()
+                        else -> listOfNotNull(tagsPath)
+                    },
+                title = if (tagSelection) null else tagsPath?.let { File(it).name },
                 snackbar = snackbar,
-                onDismiss = { tagsPath = null },
+                onDismiss = {
+                    tagsPath = null
+                    tagSelection = false
+                },
+            )
+            SelectionActionsSheet(
+                visible = selectionSheet,
+                count = state.selection.size,
+                onDismiss = { selectionSheet = false },
+                onCopy = { onEvent(BrowseEvent.CopySelection) },
+                onMove = { onEvent(BrowseEvent.MoveSelection) },
+                onTags = { tagSelection = true },
             )
             NameDialog(
                 visible = renameEntry != null,
@@ -268,9 +318,24 @@ private fun BrowseContent(
                 } else {
                     when (state.options.layout) {
                         ViewLayout.List ->
-                            EntryList(content.data, listState, padding, onClick, onLongClick)
+                            EntryList(
+                                content.data,
+                                listState,
+                                padding,
+                                state.selection,
+                                onClick,
+                                onLongClick,
+                                onMore,
+                            )
                         ViewLayout.Grid ->
-                            EntryGrid(content.data, gridState, padding, onClick, onLongClick)
+                            EntryGrid(
+                                content.data,
+                                gridState,
+                                padding,
+                                state.selection,
+                                onClick,
+                                onLongClick,
+                            )
                     }
                 }
         }
@@ -282,8 +347,10 @@ private fun EntryList(
     entries: List<FileEntry>,
     state: LazyListState,
     padding: PaddingValues,
+    selection: Set<String>,
     onClick: (FileEntry) -> Unit,
     onLongClick: (FileEntry) -> Unit,
+    onMore: (FileEntry) -> Unit,
 ) {
     PvotScreen(
         modifier = Modifier.fillMaxSize(),
@@ -291,7 +358,14 @@ private fun EntryList(
         contentPadding = PvotScreenDefaults.contentPadding(top = padding.calculateTopPadding()),
     ) {
         items(entries, key = { it.path }) { entry ->
-            FileEntryRow(entry, onClick, onLongClick, Modifier.fillMaxWidth())
+            FileEntryRow(
+                entry,
+                onClick,
+                onLongClick,
+                Modifier.fillMaxWidth(),
+                selected = entry.path in selection,
+                onMore = if (selection.isEmpty()) onMore else null,
+            )
         }
     }
 }
@@ -301,6 +375,7 @@ private fun EntryGrid(
     entries: List<FileEntry>,
     state: LazyGridState,
     padding: PaddingValues,
+    selection: Set<String>,
     onClick: (FileEntry) -> Unit,
     onLongClick: (FileEntry) -> Unit,
 ) {
@@ -312,8 +387,48 @@ private fun EntryGrid(
         verticalArrangement = Arrangement.spacedBy(PvotSpacing.S),
         horizontalArrangement = Arrangement.spacedBy(PvotSpacing.S),
     ) {
-        items(entries, key = { it.path }) { entry -> FileEntryTile(entry, onClick, onLongClick) }
+        items(entries, key = { it.path }) { entry ->
+            FileEntryTile(entry, onClick, onLongClick, selected = entry.path in selection)
+        }
     }
 }
 
 private val GridCellMinWidth = 104.dp
+
+@Composable
+private fun SelectionTopBar(
+    count: Int,
+    compact: Boolean,
+    onClear: () -> Unit,
+    onSelectAll: () -> Unit,
+    onShare: () -> Unit,
+    onDelete: () -> Unit,
+    onMore: () -> Unit,
+) {
+    PvotTopBar(
+        title = pluralStringResource(R.plurals.selected_count, count, count),
+        onBack = onClear,
+        compact = compact,
+    ) {
+        PvotTopBarAction(
+            painterResource(R.drawable.ic_select_all),
+            stringResource(R.string.select_all),
+            onSelectAll,
+        )
+        PvotTopBarAction(
+            painterResource(R.drawable.ic_share),
+            stringResource(R.string.action_share),
+            onShare,
+        )
+        PvotTopBarAction(
+            painterResource(R.drawable.ic_delete),
+            stringResource(R.string.action_delete),
+            onDelete,
+        )
+        PvotTopBarAction(
+            painterResource(R.drawable.ic_more),
+            stringResource(R.string.more_actions),
+            onMore,
+        )
+    }
+}

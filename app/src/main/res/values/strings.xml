@@ -145,6 +145,17 @@
     <string name="name_invalid">This name can\'t be used</string>
     <string name="operation_exists">Something with this name is already here</string>
     <string name="operation_failed">That didn\'t work. Check the storage and try again.</string>
+    <string name="more_actions">More actions</string>
+    <string name="entry_selected">Selected</string>
+    <string name="select_all">Select all</string>
+    <plurals name="selected_count">
+        <item quantity="one">%d selected</item>
+        <item quantity="other">%d selected</item>
+    </plurals>
+    <plurals name="moved_to_trash_count">
+        <item quantity="one">%d item moved to Recently deleted</item>
+        <item quantity="other">%d items moved to Recently deleted</item>
+    </plurals>
     <string name="file_entry_open">Open</string>
     <string name="browse_error_title">Couldn\'t open this folder</string>
     <string name="browse_error_message">It may have been moved, or the storage isn\'t available.</string>

@@ -46,7 +46,7 @@ class TagPickerViewModelTest {
         val viewModel = TagPickerViewModel(SavedStateHandle(), repository)
         collect(viewModel)
 
-        viewModel.onEvent(TagPickerEvent.Show("/storage/a.pdf"))
+        viewModel.onEvent(TagPickerEvent.Show(listOf("/storage/a.pdf")))
         viewModel.onEvent(TagPickerEvent.Toggle("Work"))
         assertEquals(setOf("Work"), viewModel.state.value.selected)
 
@@ -60,10 +60,25 @@ class TagPickerViewModelTest {
         val viewModel = TagPickerViewModel(SavedStateHandle(), repository)
         collect(viewModel)
 
-        viewModel.onEvent(TagPickerEvent.Show("/storage/a.pdf"))
+        viewModel.onEvent(TagPickerEvent.Show(listOf("/storage/a.pdf")))
         viewModel.onEvent(TagPickerEvent.Create(work))
 
         assertEquals(listOf(work), viewModel.state.value.tags)
+        assertEquals(setOf("Work"), viewModel.state.value.selected)
+    }
+
+    @Test
+    fun severalItemsShareOnlyTheTagsAllOfThemHave() = runTest {
+        val repository = FakeTagsRepository(listOf(work))
+        val viewModel = TagPickerViewModel(SavedStateHandle(), repository)
+        collect(viewModel)
+        viewModel.onEvent(TagPickerEvent.Show(listOf("/storage/a.pdf")))
+        viewModel.onEvent(TagPickerEvent.Toggle("Work"))
+
+        viewModel.onEvent(TagPickerEvent.Show(listOf("/storage/a.pdf", "/storage/b.pdf")))
+        assertEquals(emptySet<String>(), viewModel.state.value.selected)
+
+        viewModel.onEvent(TagPickerEvent.Toggle("Work"))
         assertEquals(setOf("Work"), viewModel.state.value.selected)
     }
 

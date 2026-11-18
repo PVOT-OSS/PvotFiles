@@ -8,6 +8,7 @@ import android.text.format.DateUtils
 import android.text.format.Formatter
 import androidx.annotation.DrawableRes
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -26,38 +27,48 @@ fun FileEntryRow(
     onClick: (FileEntry) -> Unit,
     onLongClick: (FileEntry) -> Unit,
     modifier: Modifier = Modifier,
+    selected: Boolean = false,
+    onMore: ((FileEntry) -> Unit)? = null,
 ) {
-    when (entry) {
-        is FileEntry.Directory ->
-            PvotListRow(
-                title = entry.name,
-                modifier = modifier,
-                supportingText =
-                    pluralStringResource(
-                        R.plurals.file_entry_folder_items,
-                        entry.childCount,
-                        entry.childCount,
-                    ),
-                leading = { EntryIcon(R.drawable.ic_folder) },
-                onClick = { onClick(entry) },
-                onLongClick = { onLongClick(entry) },
-                onClickLabel = stringResource(R.string.file_entry_open),
-            )
-        is FileEntry.File ->
-            PvotListRow(
-                title = entry.name,
-                modifier = modifier,
-                supportingText = entry.summary(),
-                leading = {
+    PvotListRow(
+        title = entry.name,
+        modifier = modifier,
+        supportingText = entry.summary(),
+        leading = {
+            when {
+                selected -> SelectedMark()
+                entry is FileEntry.File ->
                     FileThumbnail(entry, PvotListRowDefaults.LeadingSize) {
                         EntryIcon(R.drawable.ic_file)
                     }
-                },
-                onClick = { onClick(entry) },
-                onLongClick = { onLongClick(entry) },
-                onClickLabel = stringResource(R.string.file_entry_open),
-            )
-    }
+                else -> EntryIcon(R.drawable.ic_folder)
+            }
+        },
+        trailing =
+            onMore?.let { more ->
+                {
+                    IconButton(onClick = { more(entry) }) {
+                        Icon(
+                            painterResource(R.drawable.ic_more),
+                            contentDescription = stringResource(R.string.more_actions),
+                        )
+                    }
+                }
+            },
+        onClick = { onClick(entry) },
+        onLongClick = { onLongClick(entry) },
+        onClickLabel = stringResource(R.string.file_entry_open),
+        selected = selected,
+    )
+}
+
+@Composable
+fun SelectedMark() {
+    Icon(
+        painterResource(R.drawable.ic_check),
+        contentDescription = stringResource(R.string.entry_selected),
+        tint = MaterialTheme.colorScheme.primary,
+    )
 }
 
 @Composable
