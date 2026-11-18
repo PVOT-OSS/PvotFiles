@@ -12,4 +12,7 @@ import dagger.hilt.components.SingletonComponent
 @InstallIn(SingletonComponent::class)
 internal abstract class DataModule {
     @Binds abstract fun itemRepository(repository: InMemoryItemRepository): ItemRepository
+
+    @Binds
+    abstract fun directoryRepository(repository: LocalDirectoryRepository): DirectoryRepository
 }
