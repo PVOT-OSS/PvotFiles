@@ -15,4 +15,9 @@ internal abstract class DataModule {
     abstract fun directoryRepository(repository: LocalDirectoryRepository): DirectoryRepository
 
     @Binds abstract fun storageRepository(repository: VolumeStorageRepository): StorageRepository
+
+    @Binds
+    abstract fun storageUsageRepository(
+        repository: MediaStoreStorageUsageRepository
+    ): StorageUsageRepository
 }
