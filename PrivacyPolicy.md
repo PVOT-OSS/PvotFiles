@@ -28,6 +28,10 @@ delete them forever.
 - **All files access** (`MANAGE_EXTERNAL_STORAGE`): lets the app show and manage the files on
   your device's shared storage. You grant it in Android's settings and can withdraw it there at
   any time. The app reads and changes files only when you ask it to, and sends nothing anywhere.
+- **Run in the foreground and show notifications** (`FOREGROUND_SERVICE`,
+  `FOREGROUND_SERVICE_DATA_SYNC`, `POST_NOTIFICATIONS`): lets a copy or move you started keep going
+  after you leave the app, with its progress in a notification. Android asks you before the app may
+  show notifications; if you say no, copies and moves still work.
 
 ## Backups
 

@@ -52,6 +52,9 @@
     <string name="rename_title">Rename</string>
     <string name="moved_to_trash">%1$s moved to Recently deleted</string>
     <string name="undo">Undo</string>
+    <string name="transfer_channel">Copying and moving</string>
+    <string name="transfer_copying">Copying files</string>
+    <string name="transfer_moving">Moving files</string>
     <string name="trash_title">Recently deleted</string>
     <string name="trash_note">Items here are deleted forever after 30 days.</string>
     <string name="trash_empty">Nothing has been deleted</string>
