@@ -11,6 +11,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import org.prauga.files.core.model.FileOperationResult
 import org.prauga.files.core.model.TrashedItem
+import org.prauga.files.core.model.volumeOf
 
 internal class LocalTrashRepository
 @Inject
@@ -23,37 +24,48 @@ constructor(
 
     override suspend fun moveToTrash(path: String): String? =
         withContext(dispatcher) {
-            val id = trash()?.moveIn(path, clock.millis()) ?: return@withContext null
+            val volume = storage.volumes().volumeOf(path) ?: return@withContext null
+            val id = trashOn(volume.path).moveIn(path, clock.millis()) ?: return@withContext null
             mediaIndex.update(listOf(path))
             id
         }
 
     override suspend fun items(): List<TrashedItem>? =
         withContext(dispatcher) {
-            val trash = trash() ?: return@withContext null
-            trash.deleteExpired(clock.millis(), KEEP_MILLIS)
-            trash.list()
+            val trashes =
+                trashes().ifEmpty {
+                    return@withContext null
+                }
+            trashes
+                .flatMap { trash ->
+                    trash.deleteExpired(clock.millis(), KEEP_MILLIS)
+                    trash.list()
+                }
+                .sortedByDescending { it.deletedAtMillis }
         }
 
     override suspend fun restore(id: String): FileOperationResult =
         withContext(dispatcher) {
-            val trash = trash() ?: return@withContext FileOperationResult.Failed
-            val item =
-                trash.list().firstOrNull { it.id == id }
-                    ?: return@withContext FileOperationResult.Failed
+            val (trash, item) = find(id) ?: return@withContext FileOperationResult.Failed
             trash.restore(id).also {
                 if (it == FileOperationResult.Done) mediaIndex.update(listOf(item.originalPath))
             }
         }
 
     override suspend fun deleteForever(id: String): FileOperationResult =
-        withContext(dispatcher) { trash()?.deleteForever(id) ?: FileOperationResult.Failed }
+        withContext(dispatcher) { find(id)?.first?.deleteForever(id) ?: FileOperationResult.Failed }
 
     override fun isTrash(path: String): Boolean =
-        storage.primaryRootPath()?.let { path == File(it, TRASH_FOLDER).path } ?: false
+        storage.volumes().any { path == File(it.path, TRASH_FOLDER).path }
 
-    private fun trash(): TrashFolder? =
-        storage.primaryRootPath()?.let { TrashFolder(File(it, TRASH_FOLDER)) }
+    private fun find(id: String): Pair<TrashFolder, TrashedItem>? =
+        trashes().firstNotNullOfOrNull { trash ->
+            trash.list().firstOrNull { it.id == id }?.let { trash to it }
+        }
+
+    private fun trashes(): List<TrashFolder> = storage.volumes().map { trashOn(it.path) }
+
+    private fun trashOn(root: String) = TrashFolder(File(root, TRASH_FOLDER))
 
     companion object {
         const val TRASH_FOLDER = ".trash-files"

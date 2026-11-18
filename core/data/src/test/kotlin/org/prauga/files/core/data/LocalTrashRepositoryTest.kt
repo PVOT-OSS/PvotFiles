@@ -55,6 +55,29 @@ class LocalTrashRepositoryTest {
     }
 
     @Test
+    fun eachVolumeKeepsItsOwnTrashAndTheListMergesThem() = runTest {
+        val sd = folder.newFolder("sd")
+        val internalFile = File(folder.root, "a.txt").apply { writeText("") }
+        val sdFile = File(sd, "b.txt").apply { writeText("") }
+        val repository =
+            LocalTrashRepository(
+                FakeStorage(folder.root.path, extra = Volume(sd.path, "SD card", false, "sd")),
+                index,
+                clockAt(0),
+                StandardTestDispatcher(testScheduler),
+            )
+
+        repository.moveToTrash(internalFile.path)
+        val sdId = checkNotNull(repository.moveToTrash(sdFile.path))
+
+        assertTrue(File(sd, ".trash-files/files/$sdId").exists())
+        assertEquals(setOf("a.txt", "b.txt"), repository.items()?.map { it.name }?.toSet())
+        assertEquals(FileOperationResult.Done, repository.restore(sdId))
+        assertTrue(sdFile.exists())
+        assertTrue(repository.isTrash(File(sd, ".trash-files").path))
+    }
+
+    @Test
     fun withoutStorageNothingWorks() = runTest {
         val repository =
             LocalTrashRepository(
@@ -78,14 +101,16 @@ class LocalTrashRepositoryTest {
 
     private fun clockAt(millis: Long) = Clock.fixed(Instant.ofEpochMilli(millis), ZoneOffset.UTC)
 
-    private class FakeStorage(private val root: String?) : StorageRepository {
+    private class FakeStorage(private val root: String?, private val extra: Volume? = null) :
+        StorageRepository {
         override fun primaryRootPath(): String? = root
 
         override fun volumes(): List<Volume> =
             listOfNotNull(
                 root?.let {
                     Volume(it, "Internal", primary = true, mediaStoreName = "external_primary")
-                }
+                },
+                extra,
             )
     }
 }
