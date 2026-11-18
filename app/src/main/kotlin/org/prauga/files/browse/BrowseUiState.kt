@@ -14,5 +14,6 @@ data class BrowseUiState(
     val options: DisplayOptions,
     val clipboard: Clipboard? = null,
     val transferring: Boolean = false,
+    val favourite: Boolean = false,
     val content: UiState<List<FileEntry>>,
 )

@@ -40,18 +40,36 @@ private fun AppTabs() {
     var tab by rememberSaveable { mutableStateOf(AppTab.Home) }
     val tabStates = rememberSaveableStateHolder()
     val navBar: @Composable () -> Unit = { AppNavBar(selected = tab, onSelect = { tab = it }) }
+    var browseTarget by rememberSaveable { mutableStateOf<String?>(null) }
     BackHandler(enabled = tab != AppTab.Home) { tab = AppTab.Home }
     tabStates.SaveableStateProvider(tab) {
         when (tab) {
-            AppTab.Home -> HomeTab(onOpenDevice = { tab = AppTab.Browse }, bottomBar = navBar)
+            AppTab.Home ->
+                HomeTab(
+                    onOpenDevice = { tab = AppTab.Browse },
+                    onOpenFolder = {
+                        browseTarget = it
+                        tab = AppTab.Browse
+                    },
+                    bottomBar = navBar,
+                )
             AppTab.Search -> SearchScreen(bottomBar = navBar)
-            AppTab.Browse -> BrowseScreen(bottomBar = navBar)
+            AppTab.Browse ->
+                BrowseScreen(
+                    bottomBar = navBar,
+                    openPath = browseTarget,
+                    onOpened = { browseTarget = null },
+                )
         }
     }
 }
 
 @Composable
-private fun HomeTab(onOpenDevice: () -> Unit, bottomBar: @Composable () -> Unit) {
+private fun HomeTab(
+    onOpenDevice: () -> Unit,
+    onOpenFolder: (String) -> Unit,
+    bottomBar: @Composable () -> Unit,
+) {
     var category by rememberSaveable { mutableStateOf<FileCategory?>(null) }
     var trashOpen by rememberSaveable { mutableStateOf(false) }
     val open = category
@@ -61,6 +79,7 @@ private fun HomeTab(onOpenDevice: () -> Unit, bottomBar: @Composable () -> Unit)
         else ->
             HomeScreen(
                 onOpenDevice = onOpenDevice,
+                onOpenFolder = onOpenFolder,
                 onOpenCategory = { category = it },
                 onOpenTrash = { trashOpen = true },
                 bottomBar = bottomBar,

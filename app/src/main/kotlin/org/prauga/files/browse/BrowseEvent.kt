@@ -35,4 +35,8 @@ sealed interface BrowseEvent {
     data object Paste : BrowseEvent
 
     data object ClearClipboard : BrowseEvent
+
+    data class GoTo(val path: String) : BrowseEvent
+
+    data object ToggleFavourite : BrowseEvent
 }

@@ -48,4 +48,9 @@ internal abstract class DataModule {
     abstract fun recentFilesRepository(
         repository: MediaStoreRecentFilesRepository
     ): RecentFilesRepository
+
+    @Binds
+    abstract fun favouritesRepository(
+        repository: DataStoreFavouritesRepository
+    ): FavouritesRepository
 }

@@ -24,6 +24,7 @@ import org.junit.Before
 import org.junit.Test
 import org.prauga.files.core.data.DirectoryRepository
 import org.prauga.files.core.data.DisplayOptionsRepository
+import org.prauga.files.core.data.FavouritesRepository
 import org.prauga.files.core.data.FileOperationsRepository
 import org.prauga.files.core.data.StorageRepository
 import org.prauga.files.core.data.TrashRepository
@@ -320,6 +321,33 @@ class BrowseViewModelTest {
         assertFalse(viewModel.state.value.transferring)
     }
 
+    @Test
+    fun theStarTogglesTheOpenFolder() = runTest {
+        val favourites = FakeFavouritesRepository()
+        val viewModel = viewModel(favourites = favourites)
+        collect(viewModel)
+        viewModel.onEvent(BrowseEvent.Open(music))
+
+        viewModel.onEvent(BrowseEvent.ToggleFavourite)
+        assertTrue(viewModel.state.value.favourite)
+
+        viewModel.onEvent(BrowseEvent.ToggleFavourite)
+        assertFalse(viewModel.state.value.favourite)
+        assertEquals(emptyList<String>(), favourites.saved.value)
+    }
+
+    @Test
+    fun goToOpensAFolderInsideTheRootOnly() = runTest {
+        val viewModel = viewModel()
+        collect(viewModel)
+
+        viewModel.onEvent(BrowseEvent.GoTo("/elsewhere"))
+        assertEquals(null, viewModel.state.value.folderName)
+
+        viewModel.onEvent(BrowseEvent.GoTo("/storage/Music"))
+        assertEquals("Music", viewModel.state.value.folderName)
+    }
+
     private fun viewModel(
         root: String? = "/storage",
         listings: FakeDirectoryRepository = directories,
@@ -327,6 +355,7 @@ class BrowseViewModelTest {
         saved: SavedStateHandle = SavedStateHandle(),
         trash: FakeTrashRepository = FakeTrashRepository(),
         transfers: FakeTransferQueue = FakeTransferQueue(),
+        favourites: FakeFavouritesRepository = FakeFavouritesRepository(),
     ) =
         BrowseViewModel(
             saved,
@@ -336,6 +365,7 @@ class BrowseViewModelTest {
             operations,
             trash,
             transfers,
+            favourites,
         )
 
     private fun TestScope.collect(viewModel: BrowseViewModel) {
@@ -372,6 +402,15 @@ class BrowseViewModelTest {
         override suspend fun rename(path: String, newName: String): FileOperationResult {
             renamed += path to newName
             return result
+        }
+    }
+
+    private class FakeFavouritesRepository : FavouritesRepository {
+        val saved = MutableStateFlow<List<String>>(emptyList())
+        override val favourites: Flow<List<String>> = saved
+
+        override suspend fun setFavourite(path: String, favourite: Boolean) {
+            saved.update { if (favourite) it + path else it - path }
         }
     }
 

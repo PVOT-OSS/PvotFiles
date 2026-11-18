@@ -22,6 +22,9 @@
     <string name="home_title">Home</string>
     <string name="home_locations">Locations</string>
     <string name="home_recent">Recent</string>
+    <string name="home_favourites">Favourites</string>
+    <string name="favourite_add">Add to favourites</string>
+    <string name="favourite_remove">Remove from favourites</string>
     <string name="home_storage_title">File storage</string>
     <string name="home_storage_used">%1$s of %2$s used</string>
     <string name="home_category_details">%1$s · %2$s</string>

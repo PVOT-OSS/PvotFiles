@@ -10,9 +10,12 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import org.prauga.files.core.data.FavouritesRepository
 import org.prauga.files.core.data.RecentFilesRepository
 import org.prauga.files.core.data.StorageUsageRepository
 import org.prauga.files.core.model.FileEntry
@@ -24,11 +27,18 @@ class HomeViewModel
 constructor(
     private val repository: StorageUsageRepository,
     private val recentFiles: RecentFilesRepository,
+    favourites: FavouritesRepository,
 ) : ViewModel() {
     private val mutableState = MutableStateFlow<UiState<StorageUsage>>(UiState.Loading)
     val state: StateFlow<UiState<StorageUsage>> = mutableState.asStateFlow()
     private val mutableRecent = MutableStateFlow<List<FileEntry.File>>(emptyList())
     val recent: StateFlow<List<FileEntry.File>> = mutableRecent.asStateFlow()
+    val favouriteFolders: StateFlow<List<String>> =
+        favourites.favourites.stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5_000),
+            emptyList(),
+        )
     private var measuring: Job? = null
 
     fun onEvent(event: HomeEvent) {

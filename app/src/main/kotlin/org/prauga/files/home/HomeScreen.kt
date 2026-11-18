@@ -34,6 +34,7 @@ import com.prauga.pvot.designsystem.components.list.PvotRowIconStyle
 import com.prauga.pvot.designsystem.components.progress.PvotProportionBarDefaults
 import com.prauga.pvot.designsystem.navigation.PvotTopBar
 import com.prauga.pvot.designsystem.navigation.rememberPvotTopBarCompact
+import java.io.File
 import org.prauga.files.R
 import org.prauga.files.common.FileActionsSheet
 import org.prauga.files.common.FileEntryRow
@@ -45,6 +46,7 @@ import org.prauga.files.core.model.StorageUsage
 @Composable
 fun HomeScreen(
     onOpenDevice: () -> Unit,
+    onOpenFolder: (String) -> Unit,
     onOpenCategory: (FileCategory) -> Unit,
     onOpenTrash: () -> Unit,
     bottomBar: @Composable () -> Unit,
@@ -52,6 +54,7 @@ fun HomeScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val recent by viewModel.recent.collectAsStateWithLifecycle()
+    val favourites by viewModel.favouriteFolders.collectAsStateWithLifecycle()
     LifecycleResumeEffect(viewModel) {
         viewModel.onEvent(HomeEvent.Refresh)
         onPauseOrDispose {}
@@ -59,8 +62,10 @@ fun HomeScreen(
     HomeContent(
         state,
         recent = recent,
+        favourites = favourites,
         onEvent = viewModel::onEvent,
         onOpenDevice = onOpenDevice,
+        onOpenFolder = onOpenFolder,
         onOpenCategory = onOpenCategory,
         onOpenTrash = onOpenTrash,
         bottomBar = bottomBar,
@@ -71,8 +76,10 @@ fun HomeScreen(
 private fun HomeContent(
     state: UiState<StorageUsage>,
     recent: List<FileEntry.File>,
+    favourites: List<String>,
     onEvent: (HomeEvent) -> Unit,
     onOpenDevice: () -> Unit,
+    onOpenFolder: (String) -> Unit,
     onOpenCategory: (FileCategory) -> Unit,
     onOpenTrash: () -> Unit,
     bottomBar: @Composable () -> Unit,
@@ -126,6 +133,31 @@ private fun HomeContent(
                                         onClick = { onOpenCategory(usage.category) },
                                     )
                                 }
+                            }
+                        }
+                    }
+                }
+            }
+            if (favourites.isNotEmpty()) {
+                item {
+                    PvotListGroup(
+                        modifier = Modifier.fillMaxWidth(),
+                        title = stringResource(R.string.home_favourites),
+                    ) {
+                        favourites.forEach { path ->
+                            item {
+                                PvotPreferenceRow(
+                                    title = File(path).name,
+                                    onClick = { onOpenFolder(path) },
+                                    icon = {
+                                        Icon(
+                                            painterResource(R.drawable.ic_folder),
+                                            contentDescription = null,
+                                        )
+                                    },
+                                    iconStyle = PvotRowIconStyle.Plain,
+                                    chevron = PvotRowChevron.Arrow,
+                                )
                             }
                         }
                     }

@@ -7,6 +7,8 @@ import com.prauga.pvot.coreui.UiState
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -16,6 +18,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import org.prauga.files.core.data.FavouritesRepository
 import org.prauga.files.core.data.RecentFilesRepository
 import org.prauga.files.core.data.StorageUsageRepository
 import org.prauga.files.core.model.CategoryUsage
@@ -47,6 +50,7 @@ class HomeViewModelTest {
         val viewModel =
             HomeViewModel(
                 recentFiles = FakeRecentFilesRepository(),
+                favourites = FakeFavouritesRepository(),
                 repository = FakeStorageUsageRepository { usage },
             )
 
@@ -60,6 +64,7 @@ class HomeViewModelTest {
         val viewModel =
             HomeViewModel(
                 recentFiles = FakeRecentFilesRepository(),
+                favourites = FakeFavouritesRepository(),
                 repository = FakeStorageUsageRepository { null },
             )
 
@@ -76,6 +81,7 @@ class HomeViewModelTest {
             HomeViewModel(
                 FakeStorageUsageRepository { if (calls++ == 0) usage else pending.await() },
                 FakeRecentFilesRepository(),
+                FakeFavouritesRepository(),
             )
         viewModel.onEvent(HomeEvent.Refresh)
 
@@ -94,11 +100,18 @@ class HomeViewModelTest {
             HomeViewModel(
                 repository = FakeStorageUsageRepository { usage },
                 recentFiles = FakeRecentFilesRepository(listOf(file)),
+                favourites = FakeFavouritesRepository(),
             )
 
         viewModel.onEvent(HomeEvent.Refresh)
 
         assertEquals(listOf(file), viewModel.recent.value)
+    }
+
+    private class FakeFavouritesRepository : FavouritesRepository {
+        override val favourites: Flow<List<String>> = flowOf(emptyList())
+
+        override suspend fun setFavourite(path: String, favourite: Boolean) = Unit
     }
 
     private class FakeRecentFilesRepository(private val files: List<FileEntry.File> = emptyList()) :

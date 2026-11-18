@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.prauga.files.core.data.DirectoryRepository
 import org.prauga.files.core.data.DisplayOptionsRepository
+import org.prauga.files.core.data.FavouritesRepository
 import org.prauga.files.core.data.FileOperationsRepository
 import org.prauga.files.core.data.StorageRepository
 import org.prauga.files.core.data.TrashRepository
@@ -48,6 +49,7 @@ constructor(
     private val operations: FileOperationsRepository,
     private val trash: TrashRepository,
     private val transfers: TransferQueue,
+    private val favourites: FavouritesRepository,
 ) : ViewModel() {
     private val effectChannel = Channel<BrowseEffect>(Channel.BUFFERED)
     val effects: Flow<BrowseEffect> = effectChannel.receiveAsFlow()
@@ -87,6 +89,9 @@ constructor(
             .combine(options) { (current, content), options -> stateFor(current, options, content) }
             .combine(clipboard) { state, clipboard -> state.copy(clipboard = clipboard) }
             .combine(transferring) { state, running -> state.copy(transferring = running) }
+            .combine(favourites.favourites) { state, saved ->
+                state.copy(favourite = state.path in saved)
+            }
             .stateIn(
                 viewModelScope,
                 SharingStarted.WhileSubscribed(5_000),
@@ -138,7 +143,19 @@ constructor(
             is BrowseEvent.Move -> setClipboard(listOf(event.path), TransferKind.Move)
             BrowseEvent.Paste -> paste()
             BrowseEvent.ClearClipboard -> setClipboard(emptyList(), null)
+            is BrowseEvent.GoTo ->
+                if (isInsideRoot(event.path)) savedStateHandle[KEY_PATH] = event.path
+            BrowseEvent.ToggleFavourite -> {
+                val current = path.value ?: return
+                val favourite = !state.value.favourite
+                viewModelScope.launch { favourites.setFavourite(current, favourite) }
+            }
         }
+    }
+
+    private fun isInsideRoot(target: String): Boolean {
+        val top = root ?: return false
+        return target == top || target.startsWith(top + File.separator)
     }
 
     private fun setClipboard(paths: List<String>, kind: TransferKind?) {

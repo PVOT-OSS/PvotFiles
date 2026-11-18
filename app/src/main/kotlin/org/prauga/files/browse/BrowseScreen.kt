@@ -62,9 +62,20 @@ import org.prauga.files.core.model.FileEntry
 import org.prauga.files.core.model.ViewLayout
 
 @Composable
-fun BrowseScreen(bottomBar: @Composable () -> Unit, viewModel: BrowseViewModel = hiltViewModel()) {
+fun BrowseScreen(
+    bottomBar: @Composable () -> Unit,
+    openPath: String? = null,
+    onOpened: () -> Unit = {},
+    viewModel: BrowseViewModel = hiltViewModel(),
+) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     BackHandler(enabled = state.canGoUp) { viewModel.onEvent(BrowseEvent.Up) }
+    LaunchedEffect(openPath) {
+        if (openPath != null) {
+            viewModel.onEvent(BrowseEvent.GoTo(openPath))
+            onOpened()
+        }
+    }
     BrowseContent(state, viewModel.effects, viewModel::onEvent, bottomBar)
 }
 
@@ -151,6 +162,19 @@ private fun BrowseContent(
                 compact = compact,
             ) {
                 if (state.path != null) {
+                    PvotTopBarAction(
+                        icon =
+                            painterResource(
+                                if (state.favourite) R.drawable.ic_star
+                                else R.drawable.ic_star_border
+                            ),
+                        contentDescription =
+                            stringResource(
+                                if (state.favourite) R.string.favourite_remove
+                                else R.string.favourite_add
+                            ),
+                        onClick = { onEvent(BrowseEvent.ToggleFavourite) },
+                    )
                     PvotTopBarAction(
                         icon = painterResource(R.drawable.ic_new_folder),
                         contentDescription = stringResource(R.string.new_folder),
