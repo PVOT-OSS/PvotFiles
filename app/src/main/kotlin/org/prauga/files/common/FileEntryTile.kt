@@ -3,7 +3,7 @@
 
 package org.prauga.files.common
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -26,11 +26,18 @@ import org.prauga.files.R
 import org.prauga.files.core.model.FileEntry
 
 @Composable
-fun FileEntryTile(entry: FileEntry, onClick: (FileEntry) -> Unit, modifier: Modifier = Modifier) {
+fun FileEntryTile(
+    entry: FileEntry,
+    onClick: (FileEntry) -> Unit,
+    onLongClick: (FileEntry.File) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val clickable =
-        Modifier.clickable(onClickLabel = stringResource(R.string.file_entry_open)) {
-            onClick(entry)
-        }
+        Modifier.combinedClickable(
+            onClickLabel = stringResource(R.string.file_entry_open),
+            onLongClick = if (entry is FileEntry.File) ({ onLongClick(entry) }) else null,
+            onClick = { onClick(entry) },
+        )
     Column(
         modifier.clip(PvotShapes.Card).then(clickable).padding(PvotSpacing.S),
         horizontalAlignment = Alignment.CenterHorizontally,

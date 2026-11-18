@@ -29,12 +29,28 @@ class FileLauncher(
     private val unavailableMessage: String,
 ) {
     fun open(file: FileEntry.File) {
+        start(viewIntent(file) ?: return)
+    }
+
+    fun openWith(file: FileEntry.File) {
+        start(Intent.createChooser(viewIntent(file) ?: return, null))
+    }
+
+    fun share(file: FileEntry.File) {
         val uri = uriFor(file) ?: return
-        start(
-            Intent(Intent.ACTION_VIEW)
-                .setDataAndType(uri, mimeTypeOf(file))
+        val send =
+            Intent(Intent.ACTION_SEND)
+                .setType(mimeTypeOf(file))
+                .putExtra(Intent.EXTRA_STREAM, uri)
                 .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        )
+        start(Intent.createChooser(send, null))
+    }
+
+    private fun viewIntent(file: FileEntry.File): Intent? {
+        val uri = uriFor(file) ?: return null
+        return Intent(Intent.ACTION_VIEW)
+            .setDataAndType(uri, mimeTypeOf(file))
+            .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }
 
     private fun uriFor(file: FileEntry.File): Uri? =

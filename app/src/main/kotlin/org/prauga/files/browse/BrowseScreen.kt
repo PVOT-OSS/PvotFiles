@@ -41,6 +41,7 @@ import com.prauga.pvot.designsystem.navigation.rememberPvotTopBarCompact
 import com.prauga.pvot.designsystem.theme.PvotSpacing
 import org.prauga.files.R
 import org.prauga.files.common.CenteredContent
+import org.prauga.files.common.FileActionsSheet
 import org.prauga.files.common.FileEntryRow
 import org.prauga.files.common.FileEntryTile
 import org.prauga.files.common.rememberFileLauncher
@@ -73,6 +74,11 @@ private fun BrowseContent(
         }
     val snackbar = remember { SnackbarHostState() }
     val launcher = rememberFileLauncher(snackbar)
+    var actionsPath by rememberSaveable { mutableStateOf<String?>(null) }
+    val actionsFile =
+        (state.content as? UiState.Success)?.data?.firstOrNull { it.path == actionsPath }
+            as? FileEntry.File
+    val onLongClick: (FileEntry.File) -> Unit = { actionsPath = it.path }
     val onClick: (FileEntry) -> Unit = { entry ->
         when (entry) {
             is FileEntry.Directory -> onEvent(BrowseEvent.Open(entry))
@@ -102,6 +108,7 @@ private fun BrowseContent(
                 onDismiss = { optionsVisible = false },
                 onEvent = onEvent,
             )
+            FileActionsSheet(actionsFile, launcher, onDismiss = { actionsPath = null })
         },
     ) { padding ->
         when (val content = state.content) {
@@ -121,8 +128,10 @@ private fun BrowseContent(
                     }
                 } else {
                     when (state.options.layout) {
-                        ViewLayout.List -> EntryList(content.data, listState, padding, onClick)
-                        ViewLayout.Grid -> EntryGrid(content.data, gridState, padding, onClick)
+                        ViewLayout.List ->
+                            EntryList(content.data, listState, padding, onClick, onLongClick)
+                        ViewLayout.Grid ->
+                            EntryGrid(content.data, gridState, padding, onClick, onLongClick)
                     }
                 }
         }
@@ -135,6 +144,7 @@ private fun EntryList(
     state: LazyListState,
     padding: PaddingValues,
     onClick: (FileEntry) -> Unit,
+    onLongClick: (FileEntry.File) -> Unit,
 ) {
     PvotScreen(
         modifier = Modifier.fillMaxSize(),
@@ -142,7 +152,7 @@ private fun EntryList(
         contentPadding = PvotScreenDefaults.contentPadding(top = padding.calculateTopPadding()),
     ) {
         items(entries, key = { it.path }) { entry ->
-            FileEntryRow(entry, onClick = onClick, modifier = Modifier.fillMaxWidth())
+            FileEntryRow(entry, onClick, onLongClick, Modifier.fillMaxWidth())
         }
     }
 }
@@ -153,6 +163,7 @@ private fun EntryGrid(
     state: LazyGridState,
     padding: PaddingValues,
     onClick: (FileEntry) -> Unit,
+    onLongClick: (FileEntry.File) -> Unit,
 ) {
     LazyVerticalGrid(
         columns = GridCells.Adaptive(GridCellMinWidth),
@@ -162,7 +173,7 @@ private fun EntryGrid(
         verticalArrangement = Arrangement.spacedBy(PvotSpacing.S),
         horizontalArrangement = Arrangement.spacedBy(PvotSpacing.S),
     ) {
-        items(entries, key = { it.path }) { entry -> FileEntryTile(entry, onClick = onClick) }
+        items(entries, key = { it.path }) { entry -> FileEntryTile(entry, onClick, onLongClick) }
     }
 }
 

@@ -20,7 +20,12 @@ import org.prauga.files.R
 import org.prauga.files.core.model.FileEntry
 
 @Composable
-fun FileEntryRow(entry: FileEntry, onClick: (FileEntry) -> Unit, modifier: Modifier = Modifier) {
+fun FileEntryRow(
+    entry: FileEntry,
+    onClick: (FileEntry) -> Unit,
+    onLongClick: (FileEntry.File) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     when (entry) {
         is FileEntry.Directory ->
             PvotListRow(
@@ -43,6 +48,7 @@ fun FileEntryRow(entry: FileEntry, onClick: (FileEntry) -> Unit, modifier: Modif
                 supportingText = entry.summary(),
                 leading = { EntryIcon(R.drawable.ic_file) },
                 onClick = { onClick(entry) },
+                onLongClick = { onLongClick(entry) },
                 onClickLabel = stringResource(R.string.file_entry_open),
             )
     }

@@ -11,7 +11,10 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -28,6 +31,7 @@ import com.prauga.pvot.designsystem.navigation.PvotTopBar
 import com.prauga.pvot.designsystem.navigation.rememberPvotTopBarCompact
 import org.prauga.files.R
 import org.prauga.files.common.CenteredContent
+import org.prauga.files.common.FileActionsSheet
 import org.prauga.files.common.FileEntryRow
 import org.prauga.files.common.labelRes
 import org.prauga.files.common.rememberFileLauncher
@@ -48,6 +52,8 @@ fun CategoryScreen(
     BackHandler(onBack = onBack)
     val snackbar = remember { SnackbarHostState() }
     val launcher = rememberFileLauncher(snackbar)
+    var actionsPath by rememberSaveable { mutableStateOf<String?>(null) }
+    val actionsFile = (state as? UiState.Success)?.data?.firstOrNull { it.path == actionsPath }
     val listState = rememberLazyListState()
     val compact = rememberPvotTopBarCompact(listState)
     PvotScreenScaffold(
@@ -60,6 +66,7 @@ fun CategoryScreen(
         },
         bottomBar = bottomBar,
         snackbarHost = { PvotSnackbarHost(snackbar) },
+        overlay = { FileActionsSheet(actionsFile, launcher, onDismiss = { actionsPath = null }) },
     ) { padding ->
         when (val content = state) {
             UiState.Loading -> CenteredContent(padding) { PvotLoadingContent() }
@@ -87,6 +94,7 @@ fun CategoryScreen(
                             FileEntryRow(
                                 file,
                                 onClick = { launcher.open(file) },
+                                onLongClick = { actionsPath = it.path },
                                 modifier = Modifier.fillMaxWidth(),
                             )
                         }

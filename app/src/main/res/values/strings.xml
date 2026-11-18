@@ -45,6 +45,8 @@
     <string name="browse_empty">This folder is empty</string>
     <string name="open_no_app">No app on this phone can open this file</string>
     <string name="open_unavailable">This file can\'t be opened from here</string>
+    <string name="action_open_with">Open with</string>
+    <string name="action_share">Share</string>
     <string name="file_entry_open">Open</string>
     <string name="browse_error_title">Couldn\'t open this folder</string>
     <string name="browse_error_message">It may have been moved, or the storage isn\'t available.</string>
