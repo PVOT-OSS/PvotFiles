@@ -26,6 +26,9 @@
     <string name="category_videos">Videos</string>
     <string name="category_photos">Photos</string>
     <string name="category_audio">Audio</string>
+    <string name="category_empty">No files here yet</string>
+    <string name="category_error_title">Couldn\'t list these files</string>
+    <string name="category_error_message">Try again in a moment.</string>
 
     <string name="browse_root_title">On my device</string>
     <string name="browse_empty">This folder is empty</string>

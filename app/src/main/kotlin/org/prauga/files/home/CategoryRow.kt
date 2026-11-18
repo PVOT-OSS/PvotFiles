@@ -4,8 +4,6 @@
 package org.prauga.files.home
 
 import android.text.format.Formatter
-import androidx.annotation.DrawableRes
-import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -23,11 +21,18 @@ import com.prauga.pvot.designsystem.components.progress.PvotLinearProgress
 import com.prauga.pvot.designsystem.components.progress.PvotLinearProgressColors
 import com.prauga.pvot.designsystem.theme.PvotSpacing
 import org.prauga.files.R
+import org.prauga.files.common.iconRes
+import org.prauga.files.common.labelRes
 import org.prauga.files.core.model.CategoryUsage
-import org.prauga.files.core.model.FileCategory
 
 @Composable
-fun CategoryRow(usage: CategoryUsage, totalBytes: Long, color: Color, trackColor: Color) {
+fun CategoryRow(
+    usage: CategoryUsage,
+    totalBytes: Long,
+    color: Color,
+    trackColor: Color,
+    onClick: () -> Unit,
+) {
     val context = LocalContext.current
     PvotListRow(
         title = { Text(stringResource(usage.category.labelRes)) },
@@ -53,28 +58,10 @@ fun CategoryRow(usage: CategoryUsage, totalBytes: Long, color: Color, trackColor
                 )
             }
         },
+        onClick = onClick,
+        onClickLabel = stringResource(R.string.file_entry_open),
         leading = {
             Icon(painterResource(usage.category.iconRes), contentDescription = null, tint = color)
         },
     )
 }
-
-@get:StringRes
-internal val FileCategory.labelRes: Int
-    get() =
-        when (this) {
-            FileCategory.Other -> R.string.category_other
-            FileCategory.Videos -> R.string.category_videos
-            FileCategory.Photos -> R.string.category_photos
-            FileCategory.Audio -> R.string.category_audio
-        }
-
-@get:DrawableRes
-internal val FileCategory.iconRes: Int
-    get() =
-        when (this) {
-            FileCategory.Other -> R.drawable.ic_file
-            FileCategory.Videos -> R.drawable.ic_video
-            FileCategory.Photos -> R.drawable.ic_photo
-            FileCategory.Audio -> R.drawable.ic_audio
-        }

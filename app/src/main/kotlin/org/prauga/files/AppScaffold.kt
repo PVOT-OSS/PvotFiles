@@ -18,6 +18,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import org.prauga.files.access.AccessScreen
 import org.prauga.files.browse.BrowseScreen
+import org.prauga.files.category.CategoryScreen
+import org.prauga.files.core.model.FileCategory
 import org.prauga.files.home.HomeScreen
 
 @Composable
@@ -39,8 +41,22 @@ private fun AppTabs() {
     BackHandler(enabled = tab != AppTab.Home) { tab = AppTab.Home }
     tabStates.SaveableStateProvider(tab) {
         when (tab) {
-            AppTab.Home -> HomeScreen(onOpenDevice = { tab = AppTab.Browse }, bottomBar = navBar)
+            AppTab.Home -> HomeTab(onOpenDevice = { tab = AppTab.Browse }, bottomBar = navBar)
             AppTab.Browse -> BrowseScreen(bottomBar = navBar)
         }
+    }
+}
+
+@Composable
+private fun HomeTab(onOpenDevice: () -> Unit, bottomBar: @Composable () -> Unit) {
+    var category by rememberSaveable { mutableStateOf<FileCategory?>(null) }
+    when (val open = category) {
+        null ->
+            HomeScreen(
+                onOpenDevice = onOpenDevice,
+                onOpenCategory = { category = it },
+                bottomBar = bottomBar,
+            )
+        else -> CategoryScreen(open, onBack = { category = null }, bottomBar = bottomBar)
     }
 }

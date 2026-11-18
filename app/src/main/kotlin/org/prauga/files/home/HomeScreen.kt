@@ -27,11 +27,13 @@ import com.prauga.pvot.designsystem.components.list.PvotRowIconStyle
 import com.prauga.pvot.designsystem.components.progress.PvotProportionBarDefaults
 import com.prauga.pvot.designsystem.navigation.PvotTopBar
 import org.prauga.files.R
+import org.prauga.files.core.model.FileCategory
 import org.prauga.files.core.model.StorageUsage
 
 @Composable
 fun HomeScreen(
     onOpenDevice: () -> Unit,
+    onOpenCategory: (FileCategory) -> Unit,
     bottomBar: @Composable () -> Unit,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
@@ -44,6 +46,7 @@ fun HomeScreen(
         state,
         onEvent = viewModel::onEvent,
         onOpenDevice = onOpenDevice,
+        onOpenCategory = onOpenCategory,
         bottomBar = bottomBar,
     )
 }
@@ -53,6 +56,7 @@ private fun HomeContent(
     state: UiState<StorageUsage>,
     onEvent: (HomeEvent) -> Unit,
     onOpenDevice: () -> Unit,
+    onOpenCategory: (FileCategory) -> Unit,
     bottomBar: @Composable () -> Unit,
 ) {
     val barColors = PvotProportionBarDefaults.tonalColors()
@@ -87,6 +91,7 @@ private fun HomeContent(
                                             barColors.segmentColors[
                                                     index % barColors.segmentColors.size],
                                         trackColor = barColors.trackColor,
+                                        onClick = { onOpenCategory(usage.category) },
                                     )
                                 }
                             }

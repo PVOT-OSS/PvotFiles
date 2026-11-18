@@ -4,15 +4,12 @@
 package org.prauga.files.browse
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -26,6 +23,7 @@ import com.prauga.pvot.designsystem.components.PvotScreenDefaults
 import com.prauga.pvot.designsystem.components.PvotScreenScaffold
 import com.prauga.pvot.designsystem.navigation.PvotTopBar
 import org.prauga.files.R
+import org.prauga.files.common.CenteredContent
 import org.prauga.files.common.FileEntryRow
 import org.prauga.files.core.model.FileEntry
 
@@ -52,9 +50,9 @@ private fun BrowseContent(
         bottomBar = bottomBar,
     ) { padding ->
         when (val content = state.content) {
-            UiState.Loading -> Centered(padding) { PvotLoadingContent() }
+            UiState.Loading -> CenteredContent(padding) { PvotLoadingContent() }
             is UiState.Error ->
-                Centered(padding) {
+                CenteredContent(padding) {
                     PvotErrorContent(
                         title = stringResource(R.string.browse_error_title),
                         message = stringResource(R.string.browse_error_message),
@@ -63,21 +61,13 @@ private fun BrowseContent(
                 }
             is UiState.Success ->
                 if (content.data.isEmpty()) {
-                    Centered(padding) { PvotEmptyContent(stringResource(R.string.browse_empty)) }
+                    CenteredContent(padding) {
+                        PvotEmptyContent(stringResource(R.string.browse_empty))
+                    }
                 } else {
                     EntryList(content.data, padding, onOpen = { onEvent(BrowseEvent.Open(it)) })
                 }
         }
-    }
-}
-
-@Composable
-private fun Centered(padding: PaddingValues, content: @Composable () -> Unit) {
-    Box(
-        Modifier.fillMaxSize().padding(top = padding.calculateTopPadding()),
-        contentAlignment = Alignment.Center,
-    ) {
-        content()
     }
 }
 
