@@ -19,11 +19,4 @@
         <item quantity="one">%d item</item>
         <item quantity="other">%d items</item>
     </plurals>
-
-    <string name="home_title">Items</string>
-    <string name="home_empty">No items yet</string>
-    <string name="home_add">Add item</string>
-    <string name="home_new_item">Item %1$d</string>
-    <string name="home_error_title">Couldn\'t load items</string>
-    <string name="home_error_message">Try again in a moment.</string>
 </resources>
