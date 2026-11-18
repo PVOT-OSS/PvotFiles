@@ -12,9 +12,11 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -30,6 +32,7 @@ import com.prauga.pvot.coreui.UiState
 import com.prauga.pvot.designsystem.components.PvotScreen
 import com.prauga.pvot.designsystem.components.PvotScreenDefaults
 import com.prauga.pvot.designsystem.components.PvotScreenScaffold
+import com.prauga.pvot.designsystem.components.PvotSnackbarHost
 import com.prauga.pvot.designsystem.navigation.PvotTopBar
 import com.prauga.pvot.designsystem.navigation.PvotTopBarAction
 import com.prauga.pvot.designsystem.theme.PvotSpacing
@@ -37,6 +40,7 @@ import org.prauga.files.R
 import org.prauga.files.common.CenteredContent
 import org.prauga.files.common.FileEntryRow
 import org.prauga.files.common.FileEntryTile
+import org.prauga.files.common.rememberFileLauncher
 import org.prauga.files.core.model.FileEntry
 import org.prauga.files.core.model.ViewLayout
 
@@ -54,6 +58,14 @@ private fun BrowseContent(
     bottomBar: @Composable () -> Unit,
 ) {
     var optionsVisible by rememberSaveable { mutableStateOf(false) }
+    val snackbar = remember { SnackbarHostState() }
+    val launcher = rememberFileLauncher(snackbar)
+    val onClick: (FileEntry) -> Unit = { entry ->
+        when (entry) {
+            is FileEntry.Directory -> onEvent(BrowseEvent.Open(entry))
+            is FileEntry.File -> launcher.open(entry)
+        }
+    }
     PvotScreenScaffold(
         topBar = {
             PvotTopBar(
@@ -68,6 +80,7 @@ private fun BrowseContent(
             }
         },
         bottomBar = bottomBar,
+        snackbarHost = { PvotSnackbarHost(snackbar) },
         overlay = {
             ViewOptionsSheet(
                 visible = optionsVisible,
@@ -94,18 +107,8 @@ private fun BrowseContent(
                     }
                 } else {
                     when (state.options.layout) {
-                        ViewLayout.List ->
-                            EntryList(
-                                content.data,
-                                padding,
-                                onOpen = { onEvent(BrowseEvent.Open(it)) },
-                            )
-                        ViewLayout.Grid ->
-                            EntryGrid(
-                                content.data,
-                                padding,
-                                onOpen = { onEvent(BrowseEvent.Open(it)) },
-                            )
+                        ViewLayout.List -> EntryList(content.data, padding, onClick)
+                        ViewLayout.Grid -> EntryGrid(content.data, padding, onClick)
                     }
                 }
         }
@@ -116,14 +119,14 @@ private fun BrowseContent(
 private fun EntryList(
     entries: List<FileEntry>,
     padding: PaddingValues,
-    onOpen: (FileEntry.Directory) -> Unit,
+    onClick: (FileEntry) -> Unit,
 ) {
     PvotScreen(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PvotScreenDefaults.contentPadding(top = padding.calculateTopPadding()),
     ) {
         items(entries, key = { it.path }) { entry ->
-            FileEntryRow(entry, onOpenDirectory = onOpen, modifier = Modifier.fillMaxWidth())
+            FileEntryRow(entry, onClick = onClick, modifier = Modifier.fillMaxWidth())
         }
     }
 }
@@ -132,7 +135,7 @@ private fun EntryList(
 private fun EntryGrid(
     entries: List<FileEntry>,
     padding: PaddingValues,
-    onOpen: (FileEntry.Directory) -> Unit,
+    onClick: (FileEntry) -> Unit,
 ) {
     LazyVerticalGrid(
         columns = GridCells.Adaptive(GridCellMinWidth),
@@ -141,9 +144,7 @@ private fun EntryGrid(
         verticalArrangement = Arrangement.spacedBy(PvotSpacing.S),
         horizontalArrangement = Arrangement.spacedBy(PvotSpacing.S),
     ) {
-        items(entries, key = { it.path }) { entry ->
-            FileEntryTile(entry, onOpenDirectory = onOpen)
-        }
+        items(entries, key = { it.path }) { entry -> FileEntryTile(entry, onClick = onClick) }
     }
 }
 

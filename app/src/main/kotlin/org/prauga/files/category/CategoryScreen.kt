@@ -7,8 +7,10 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -20,11 +22,13 @@ import com.prauga.pvot.coreui.UiState
 import com.prauga.pvot.designsystem.components.PvotScreen
 import com.prauga.pvot.designsystem.components.PvotScreenDefaults
 import com.prauga.pvot.designsystem.components.PvotScreenScaffold
+import com.prauga.pvot.designsystem.components.PvotSnackbarHost
 import com.prauga.pvot.designsystem.navigation.PvotTopBar
 import org.prauga.files.R
 import org.prauga.files.common.CenteredContent
 import org.prauga.files.common.FileEntryRow
 import org.prauga.files.common.labelRes
+import org.prauga.files.common.rememberFileLauncher
 import org.prauga.files.core.model.FileCategory
 import org.prauga.files.core.model.FileEntry
 
@@ -40,9 +44,12 @@ fun CategoryScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     BackHandler(onBack = onBack)
+    val snackbar = remember { SnackbarHostState() }
+    val launcher = rememberFileLauncher(snackbar)
     PvotScreenScaffold(
         topBar = { PvotTopBar(title = stringResource(category.labelRes), onBack = onBack) },
         bottomBar = bottomBar,
+        snackbarHost = { PvotSnackbarHost(snackbar) },
     ) { padding ->
         when (val content = state) {
             UiState.Loading -> CenteredContent(padding) { PvotLoadingContent() }
@@ -68,7 +75,7 @@ fun CategoryScreen(
                         items(content.data, key = FileEntry.File::path) { file ->
                             FileEntryRow(
                                 file,
-                                onOpenDirectory = {},
+                                onClick = { launcher.open(file) },
                                 modifier = Modifier.fillMaxWidth(),
                             )
                         }

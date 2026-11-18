@@ -26,18 +26,10 @@ import org.prauga.files.R
 import org.prauga.files.core.model.FileEntry
 
 @Composable
-fun FileEntryTile(
-    entry: FileEntry,
-    onOpenDirectory: (FileEntry.Directory) -> Unit,
-    modifier: Modifier = Modifier,
-) {
+fun FileEntryTile(entry: FileEntry, onClick: (FileEntry) -> Unit, modifier: Modifier = Modifier) {
     val clickable =
-        if (entry is FileEntry.Directory) {
-            Modifier.clickable(onClickLabel = stringResource(R.string.file_entry_open)) {
-                onOpenDirectory(entry)
-            }
-        } else {
-            Modifier
+        Modifier.clickable(onClickLabel = stringResource(R.string.file_entry_open)) {
+            onClick(entry)
         }
     Column(
         modifier.clip(PvotShapes.Card).then(clickable).padding(PvotSpacing.S),
