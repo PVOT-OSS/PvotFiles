@@ -39,6 +39,7 @@ import org.prauga.files.common.CenteredContent
 import org.prauga.files.common.FileEntryRow
 import org.prauga.files.common.rememberFileLauncher
 import org.prauga.files.core.model.FileEntry
+import org.prauga.files.info.EntryActionsSheets
 
 @Composable
 fun TaggedScreen(
@@ -60,6 +61,7 @@ fun TaggedScreen(
     val snackbar = remember { SnackbarHostState() }
     val launcher = rememberFileLauncher(snackbar)
     var confirmDelete by rememberSaveable { mutableStateOf(false) }
+    var actionsPath by rememberSaveable { mutableStateOf<String?>(null) }
     val listState = rememberLazyListState()
     PvotScreenScaffold(
         topBar = {
@@ -78,6 +80,11 @@ fun TaggedScreen(
         bottomBar = bottomBar,
         snackbarHost = { PvotSnackbarHost(snackbar) },
         overlay = {
+            EntryActionsSheets(
+                (state as? UiState.Success)?.data?.firstOrNull { it.path == actionsPath },
+                launcher,
+                onDismiss = { actionsPath = null },
+            )
             PvotDialog(
                 visible = confirmDelete,
                 onDismissRequest = { confirmDelete = false },
@@ -125,8 +132,9 @@ fun TaggedScreen(
                                         is FileEntry.File -> launcher.open(it)
                                     }
                                 },
-                                onLongClick = {},
+                                onLongClick = { actionsPath = it.path },
                                 modifier = Modifier.fillMaxWidth(),
+                                onMore = { actionsPath = it.path },
                             )
                         }
                     }

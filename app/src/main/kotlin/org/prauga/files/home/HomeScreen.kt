@@ -39,7 +39,6 @@ import com.prauga.pvot.designsystem.navigation.PvotTopBarAction
 import com.prauga.pvot.designsystem.navigation.rememberPvotTopBarCompact
 import java.io.File
 import org.prauga.files.R
-import org.prauga.files.common.FileActionsSheet
 import org.prauga.files.common.FileEntryRow
 import org.prauga.files.common.TagDot
 import org.prauga.files.common.rememberFileLauncher
@@ -49,6 +48,7 @@ import org.prauga.files.core.model.SavedLocation
 import org.prauga.files.core.model.StorageUsage
 import org.prauga.files.core.model.Tag
 import org.prauga.files.core.model.Volume
+import org.prauga.files.info.EntryActionsSheets
 
 @Composable
 fun HomeScreen(
@@ -134,7 +134,7 @@ private fun HomeContent(
         bottomBar = bottomBar,
         snackbarHost = { PvotSnackbarHost(snackbar) },
         overlay = {
-            FileActionsSheet(
+            EntryActionsSheets(
                 recent.firstOrNull { it.path == actionsPath },
                 launcher,
                 onDismiss = { actionsPath = null },
@@ -313,6 +313,7 @@ private fun HomeContent(
                                     onClick = { launcher.open(file) },
                                     onLongClick = { actionsPath = it.path },
                                     modifier = Modifier.fillMaxWidth(),
+                                    onMore = { actionsPath = it.path },
                                 )
                             }
                         }

@@ -43,10 +43,10 @@ import com.prauga.pvot.designsystem.navigation.rememberPvotTopBarCompact
 import com.prauga.pvot.designsystem.theme.PvotSpacing
 import org.prauga.files.R
 import org.prauga.files.common.CenteredContent
-import org.prauga.files.common.FileActionsSheet
 import org.prauga.files.common.FileEntryRow
 import org.prauga.files.common.rememberFileLauncher
 import org.prauga.files.core.model.FileEntry
+import org.prauga.files.info.EntryActionsSheets
 
 @Composable
 fun SearchScreen(bottomBar: @Composable () -> Unit, viewModel: SearchViewModel = hiltViewModel()) {
@@ -82,7 +82,7 @@ private fun SearchContent(
         },
         snackbarHost = { PvotSnackbarHost(snackbar) },
         overlay = {
-            FileActionsSheet(
+            EntryActionsSheets(
                 results.firstOrNull { it.path == actionsPath },
                 launcher,
                 onDismiss = { actionsPath = null },
@@ -122,6 +122,7 @@ private fun SearchContent(
                                 onClick = { launcher.open(file) },
                                 onLongClick = { actionsPath = it.path },
                                 modifier = Modifier.fillMaxWidth(),
+                                onMore = { actionsPath = it.path },
                             )
                         }
                     }

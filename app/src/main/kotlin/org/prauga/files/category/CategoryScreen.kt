@@ -31,12 +31,12 @@ import com.prauga.pvot.designsystem.navigation.PvotTopBar
 import com.prauga.pvot.designsystem.navigation.rememberPvotTopBarCompact
 import org.prauga.files.R
 import org.prauga.files.common.CenteredContent
-import org.prauga.files.common.FileActionsSheet
 import org.prauga.files.common.FileEntryRow
 import org.prauga.files.common.labelRes
 import org.prauga.files.common.rememberFileLauncher
 import org.prauga.files.core.model.FileCategory
 import org.prauga.files.core.model.FileEntry
+import org.prauga.files.info.EntryActionsSheets
 
 @Composable
 fun CategoryScreen(
@@ -66,7 +66,7 @@ fun CategoryScreen(
         },
         bottomBar = bottomBar,
         snackbarHost = { PvotSnackbarHost(snackbar) },
-        overlay = { FileActionsSheet(actionsFile, launcher, onDismiss = { actionsPath = null }) },
+        overlay = { EntryActionsSheets(actionsFile, launcher, onDismiss = { actionsPath = null }) },
     ) { padding ->
         when (val content = state) {
             UiState.Loading -> CenteredContent(padding) { PvotLoadingContent() }
@@ -96,6 +96,7 @@ fun CategoryScreen(
                                 onClick = { launcher.open(file) },
                                 onLongClick = { entry -> actionsPath = entry.path },
                                 modifier = Modifier.fillMaxWidth(),
+                                onMore = { entry -> actionsPath = entry.path },
                             )
                         }
                     }
