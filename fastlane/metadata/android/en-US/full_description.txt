@@ -1,3 +1,14 @@
-Describe what the app does for the person using it, in plain sentences.
+Files shows what is on your phone's storage and helps you keep it tidy.
 
-No ads, no analytics, no tracking.
+• See how much space you use and how much goes to photos, videos, audio and other files
+• Browse every folder as a list or a grid, sorted by name, date, size or type
+• Open files with your other apps, or share them
+• Create folders, rename, copy and move — big copies keep going in the background
+• Deleted items wait 30 days in Recently deleted, so you can restore them
+• Find files by name, mark favourite folders and group files with your own tags
+• Previews for photos and videos
+
+Files has no internet permission, no accounts, no ads and no analytics. Everything it keeps — your
+view settings, favourites and tags — stays on your phone.
+
+Files is part of PVOT-OSS and is free software under the Apache License 2.0.

@@ -1,1 +1,2 @@
-First release.
+First release: storage overview, browsing as a list or grid, open and share, create, rename, copy,
+move, Recently deleted, search, favourites, tags and previews.
