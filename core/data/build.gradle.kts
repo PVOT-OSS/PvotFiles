@@ -11,5 +11,6 @@ android { namespace = "org.prauga.files.core.data" }
 dependencies {
     api(project(":core:model"))
     api(libs.kotlinx.coroutines.core)
+    implementation(libs.androidx.datastore.preferences)
     testImplementation(libs.kotlinx.coroutines.test)
 }

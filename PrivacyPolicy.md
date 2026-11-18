@@ -15,7 +15,9 @@ permission, so nothing you do in it leaves your phone.**
 
 ## What the app stores
 
-The items you add, kept in the app's memory while it runs.
+Only how you like to see your files: the sort order, list or grid view, and whether hidden files
+are shown. It is kept on your device. The app reads your files to show them; it keeps no copy of
+them and no list of what you open.
 
 ## Permissions
 
