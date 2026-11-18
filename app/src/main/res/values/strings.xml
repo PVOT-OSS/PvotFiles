@@ -21,6 +21,7 @@
     <string name="search_error_message">The storage isn\'t available right now.</string>
     <string name="home_title">Home</string>
     <string name="home_locations">Locations</string>
+    <string name="home_recent">Recent</string>
     <string name="home_storage_title">File storage</string>
     <string name="home_storage_used">%1$s of %2$s used</string>
     <string name="home_category_details">%1$s · %2$s</string>

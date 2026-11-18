@@ -13,14 +13,22 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import org.prauga.files.core.data.RecentFilesRepository
 import org.prauga.files.core.data.StorageUsageRepository
+import org.prauga.files.core.model.FileEntry
 import org.prauga.files.core.model.StorageUsage
 
 @HiltViewModel
-class HomeViewModel @Inject constructor(private val repository: StorageUsageRepository) :
-    ViewModel() {
+class HomeViewModel
+@Inject
+constructor(
+    private val repository: StorageUsageRepository,
+    private val recentFiles: RecentFilesRepository,
+) : ViewModel() {
     private val mutableState = MutableStateFlow<UiState<StorageUsage>>(UiState.Loading)
     val state: StateFlow<UiState<StorageUsage>> = mutableState.asStateFlow()
+    private val mutableRecent = MutableStateFlow<List<FileEntry.File>>(emptyList())
+    val recent: StateFlow<List<FileEntry.File>> = mutableRecent.asStateFlow()
     private var measuring: Job? = null
 
     fun onEvent(event: HomeEvent) {
@@ -36,6 +44,11 @@ class HomeViewModel @Inject constructor(private val repository: StorageUsageRepo
             viewModelScope.launch {
                 mutableState.value =
                     repository.measure()?.let { UiState.Success(it) } ?: UiState.Error(message = "")
+                mutableRecent.value = recentFiles.recent(RECENT_LIMIT).orEmpty()
             }
+    }
+
+    private companion object {
+        const val RECENT_LIMIT = 6
     }
 }

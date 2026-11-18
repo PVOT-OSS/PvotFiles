@@ -16,9 +16,11 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import org.prauga.files.core.data.RecentFilesRepository
 import org.prauga.files.core.data.StorageUsageRepository
 import org.prauga.files.core.model.CategoryUsage
 import org.prauga.files.core.model.FileCategory
+import org.prauga.files.core.model.FileEntry
 import org.prauga.files.core.model.StorageUsage
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -42,7 +44,11 @@ class HomeViewModelTest {
 
     @Test
     fun refreshShowsTheMeasuredUsage() = runTest {
-        val viewModel = HomeViewModel(FakeStorageUsageRepository { usage })
+        val viewModel =
+            HomeViewModel(
+                recentFiles = FakeRecentFilesRepository(),
+                repository = FakeStorageUsageRepository { usage },
+            )
 
         viewModel.onEvent(HomeEvent.Refresh)
 
@@ -51,7 +57,11 @@ class HomeViewModelTest {
 
     @Test
     fun unavailableStorageIsAnError() = runTest {
-        val viewModel = HomeViewModel(FakeStorageUsageRepository { null })
+        val viewModel =
+            HomeViewModel(
+                recentFiles = FakeRecentFilesRepository(),
+                repository = FakeStorageUsageRepository { null },
+            )
 
         viewModel.onEvent(HomeEvent.Refresh)
 
@@ -64,7 +74,8 @@ class HomeViewModelTest {
         var calls = 0
         val viewModel =
             HomeViewModel(
-                FakeStorageUsageRepository { if (calls++ == 0) usage else pending.await() }
+                FakeStorageUsageRepository { if (calls++ == 0) usage else pending.await() },
+                FakeRecentFilesRepository(),
             )
         viewModel.onEvent(HomeEvent.Refresh)
 
@@ -74,6 +85,25 @@ class HomeViewModelTest {
         val updated = usage.copy(freeBytes = 30)
         pending.complete(updated)
         assertEquals(UiState.Success(updated), viewModel.state.value)
+    }
+
+    @Test
+    fun refreshAlsoLoadsTheRecentFiles() = runTest {
+        val file = FileEntry.File("/storage/a.pdf", "a.pdf", 0L, sizeBytes = 1)
+        val viewModel =
+            HomeViewModel(
+                repository = FakeStorageUsageRepository { usage },
+                recentFiles = FakeRecentFilesRepository(listOf(file)),
+            )
+
+        viewModel.onEvent(HomeEvent.Refresh)
+
+        assertEquals(listOf(file), viewModel.recent.value)
+    }
+
+    private class FakeRecentFilesRepository(private val files: List<FileEntry.File> = emptyList()) :
+        RecentFilesRepository {
+        override suspend fun recent(limit: Int): List<FileEntry.File>? = files.take(limit)
     }
 
     private class FakeStorageUsageRepository(private val measure: suspend () -> StorageUsage?) :

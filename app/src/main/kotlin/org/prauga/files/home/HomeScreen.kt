@@ -7,8 +7,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Icon
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -21,6 +26,7 @@ import com.prauga.pvot.coreui.UiState
 import com.prauga.pvot.designsystem.components.PvotScreen
 import com.prauga.pvot.designsystem.components.PvotScreenDefaults
 import com.prauga.pvot.designsystem.components.PvotScreenScaffold
+import com.prauga.pvot.designsystem.components.PvotSnackbarHost
 import com.prauga.pvot.designsystem.components.list.PvotListGroup
 import com.prauga.pvot.designsystem.components.list.PvotPreferenceRow
 import com.prauga.pvot.designsystem.components.list.PvotRowChevron
@@ -29,7 +35,11 @@ import com.prauga.pvot.designsystem.components.progress.PvotProportionBarDefault
 import com.prauga.pvot.designsystem.navigation.PvotTopBar
 import com.prauga.pvot.designsystem.navigation.rememberPvotTopBarCompact
 import org.prauga.files.R
+import org.prauga.files.common.FileActionsSheet
+import org.prauga.files.common.FileEntryRow
+import org.prauga.files.common.rememberFileLauncher
 import org.prauga.files.core.model.FileCategory
+import org.prauga.files.core.model.FileEntry
 import org.prauga.files.core.model.StorageUsage
 
 @Composable
@@ -41,12 +51,14 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val recent by viewModel.recent.collectAsStateWithLifecycle()
     LifecycleResumeEffect(viewModel) {
         viewModel.onEvent(HomeEvent.Refresh)
         onPauseOrDispose {}
     }
     HomeContent(
         state,
+        recent = recent,
         onEvent = viewModel::onEvent,
         onOpenDevice = onOpenDevice,
         onOpenCategory = onOpenCategory,
@@ -58,6 +70,7 @@ fun HomeScreen(
 @Composable
 private fun HomeContent(
     state: UiState<StorageUsage>,
+    recent: List<FileEntry.File>,
     onEvent: (HomeEvent) -> Unit,
     onOpenDevice: () -> Unit,
     onOpenCategory: (FileCategory) -> Unit,
@@ -66,10 +79,21 @@ private fun HomeContent(
 ) {
     val barColors = PvotProportionBarDefaults.tonalColors()
     val listState = rememberLazyListState()
+    val snackbar = remember { SnackbarHostState() }
+    val launcher = rememberFileLauncher(snackbar)
+    var actionsPath by rememberSaveable { mutableStateOf<String?>(null) }
     val compact = rememberPvotTopBarCompact(listState)
     PvotScreenScaffold(
         topBar = { PvotTopBar(title = stringResource(R.string.home_title), compact = compact) },
         bottomBar = bottomBar,
+        snackbarHost = { PvotSnackbarHost(snackbar) },
+        overlay = {
+            FileActionsSheet(
+                recent.firstOrNull { it.path == actionsPath },
+                launcher,
+                onDismiss = { actionsPath = null },
+            )
+        },
     ) { padding ->
         PvotScreen(
             modifier = Modifier.fillMaxSize(),
@@ -139,6 +163,25 @@ private fun HomeContent(
                             iconStyle = PvotRowIconStyle.Plain,
                             chevron = PvotRowChevron.Arrow,
                         )
+                    }
+                }
+            }
+            if (recent.isNotEmpty()) {
+                item {
+                    PvotListGroup(
+                        modifier = Modifier.fillMaxWidth(),
+                        title = stringResource(R.string.home_recent),
+                    ) {
+                        recent.forEach { file ->
+                            item {
+                                FileEntryRow(
+                                    file,
+                                    onClick = { launcher.open(file) },
+                                    onLongClick = { actionsPath = it.path },
+                                    modifier = Modifier.fillMaxWidth(),
+                                )
+                            }
+                        }
                     }
                 }
             }

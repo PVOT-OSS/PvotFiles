@@ -43,4 +43,9 @@ internal abstract class DataModule {
     @Binds abstract fun transferRepository(repository: LocalTransferRepository): TransferRepository
 
     @Binds abstract fun searchRepository(repository: MediaStoreSearchRepository): SearchRepository
+
+    @Binds
+    abstract fun recentFilesRepository(
+        repository: MediaStoreRecentFilesRepository
+    ): RecentFilesRepository
 }
