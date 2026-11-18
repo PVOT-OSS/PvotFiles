@@ -28,4 +28,10 @@ internal object PreferencesModule {
     @FavouritesStore
     fun favourites(@ApplicationContext context: Context): DataStore<Preferences> =
         PreferenceDataStoreFactory.create { context.preferencesDataStoreFile("favourites") }
+
+    @Provides
+    @Singleton
+    @TagsStore
+    fun tags(@ApplicationContext context: Context): DataStore<Preferences> =
+        PreferenceDataStoreFactory.create { context.preferencesDataStoreFile("tags") }
 }

@@ -53,4 +53,6 @@ internal abstract class DataModule {
     abstract fun favouritesRepository(
         repository: DataStoreFavouritesRepository
     ): FavouritesRepository
+
+    @Binds abstract fun tagsRepository(repository: DataStoreTagsRepository): TagsRepository
 }
