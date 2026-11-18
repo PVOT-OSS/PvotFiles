@@ -3,7 +3,12 @@
      SPDX-FileCopyrightText: 2026 Saalim Quadri <danascape@gmail.com>
      SPDX-License-Identifier: Apache-2.0
 -->
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission
+        android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
+        tools:ignore="ScopedStorage" />
 
     <application
         android:name=".FilesApplication"

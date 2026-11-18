@@ -6,6 +6,9 @@
 <resources>
     <string name="app_name">Files</string>
 
+    <string name="access_message">Files needs access to all files to show and manage what is on your storage.</string>
+    <string name="access_allow">Allow access</string>
+
     <string name="home_title">Items</string>
     <string name="home_empty">No items yet</string>
     <string name="home_add">Add item</string>

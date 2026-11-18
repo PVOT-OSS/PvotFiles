@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import org.prauga.files.access.AccessScreen
 import org.prauga.files.home.HomeScreen
 
 @Composable
@@ -27,7 +28,7 @@ fun AppScaffold() {
                 .padding(top = padding.calculateTopPadding()),
             contentAlignment = Alignment.Center,
         ) {
-            HomeScreen()
+            AccessScreen { HomeScreen() }
         }
     }
 }

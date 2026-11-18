@@ -5,7 +5,7 @@ SPDX-License-Identifier: Apache-2.0
 
 # Privacy Policy — Files
 
-_Effective 13 November 2026_
+_Effective 18 November 2026_
 
 Files (package `org.prauga.files`) is an app published by Saalim Quadri for PVOT-OSS. This
 policy explains what the app does with your data.
@@ -19,7 +19,9 @@ The items you add, kept in the app's memory while it runs.
 
 ## Permissions
 
-None.
+- **All files access** (`MANAGE_EXTERNAL_STORAGE`): lets the app show and manage the files on
+  your device's shared storage. You grant it in Android's settings and can withdraw it there at
+  any time. The app reads and changes files only when you ask it to, and sends nothing anywhere.
 
 ## Backups
 
