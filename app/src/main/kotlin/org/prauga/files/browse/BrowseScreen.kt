@@ -38,21 +38,26 @@ import org.prauga.files.R
 import org.prauga.files.core.model.FileEntry
 
 @Composable
-fun BrowseScreen(viewModel: BrowseViewModel = hiltViewModel()) {
+fun BrowseScreen(bottomBar: @Composable () -> Unit, viewModel: BrowseViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     BackHandler(enabled = state.canGoUp) { viewModel.onEvent(BrowseEvent.Up) }
-    BrowseContent(state, viewModel::onEvent)
+    BrowseContent(state, viewModel::onEvent, bottomBar)
 }
 
 @Composable
-private fun BrowseContent(state: BrowseUiState, onEvent: (BrowseEvent) -> Unit) {
+private fun BrowseContent(
+    state: BrowseUiState,
+    onEvent: (BrowseEvent) -> Unit,
+    bottomBar: @Composable () -> Unit,
+) {
     PvotScreenScaffold(
         topBar = {
             PvotTopBar(
                 title = state.folderName ?: stringResource(R.string.browse_root_title),
                 onBack = if (state.canGoUp) ({ onEvent(BrowseEvent.Up) }) else null,
             )
-        }
+        },
+        bottomBar = bottomBar,
     ) { padding ->
         when (val content = state.content) {
             UiState.Loading -> Centered(padding) { PvotLoadingContent() }
