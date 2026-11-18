@@ -20,4 +20,9 @@ internal abstract class DataModule {
     abstract fun storageUsageRepository(
         repository: MediaStoreStorageUsageRepository
     ): StorageUsageRepository
+
+    @Binds
+    abstract fun categoryFilesRepository(
+        repository: MediaStoreCategoryFilesRepository
+    ): CategoryFilesRepository
 }
