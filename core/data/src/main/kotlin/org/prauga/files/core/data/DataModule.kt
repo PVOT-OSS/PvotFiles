@@ -30,4 +30,11 @@ internal abstract class DataModule {
     abstract fun displayOptionsRepository(
         repository: DataStoreDisplayOptionsRepository
     ): DisplayOptionsRepository
+
+    @Binds abstract fun mediaIndex(index: ScannerMediaIndex): MediaIndex
+
+    @Binds
+    abstract fun fileOperationsRepository(
+        repository: LocalFileOperationsRepository
+    ): FileOperationsRepository
 }
