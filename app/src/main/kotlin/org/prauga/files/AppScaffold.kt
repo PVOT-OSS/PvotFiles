@@ -22,6 +22,7 @@ import org.prauga.files.category.CategoryScreen
 import org.prauga.files.core.model.FileCategory
 import org.prauga.files.home.HomeScreen
 import org.prauga.files.search.SearchScreen
+import org.prauga.files.tags.TaggedScreen
 import org.prauga.files.trash.TrashScreen
 
 @Composable
@@ -72,9 +73,18 @@ private fun HomeTab(
 ) {
     var category by rememberSaveable { mutableStateOf<FileCategory?>(null) }
     var trashOpen by rememberSaveable { mutableStateOf(false) }
+    var tagOpen by rememberSaveable { mutableStateOf<String?>(null) }
     val open = category
+    val tag = tagOpen
     when {
         trashOpen -> TrashScreen(onBack = { trashOpen = false }, bottomBar = bottomBar)
+        tag != null ->
+            TaggedScreen(
+                tagName = tag,
+                onBack = { tagOpen = null },
+                onOpenFolder = onOpenFolder,
+                bottomBar = bottomBar,
+            )
         open != null -> CategoryScreen(open, onBack = { category = null }, bottomBar = bottomBar)
         else ->
             HomeScreen(
@@ -82,6 +92,7 @@ private fun HomeTab(
                 onOpenFolder = onOpenFolder,
                 onOpenCategory = { category = it },
                 onOpenTrash = { trashOpen = true },
+                onOpenTag = { tagOpen = it },
                 bottomBar = bottomBar,
             )
     }

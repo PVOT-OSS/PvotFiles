@@ -62,6 +62,11 @@
     <string name="action_rename">Rename</string>
     <string name="action_tags">Tags</string>
     <string name="tag_new">New tag</string>
+    <string name="home_tags">Tags</string>
+    <string name="tag_empty">Nothing has this tag</string>
+    <string name="tag_delete">Delete tag</string>
+    <string name="tag_delete_title">Delete the tag %1$s?</string>
+    <string name="tag_delete_message">Your files stay where they are. Only the tag goes.</string>
     <string name="tag_applied">Tagged</string>
     <string name="tag_color_red">Red</string>
     <string name="tag_color_yellow">Yellow</string>

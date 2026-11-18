@@ -38,10 +38,12 @@ import java.io.File
 import org.prauga.files.R
 import org.prauga.files.common.FileActionsSheet
 import org.prauga.files.common.FileEntryRow
+import org.prauga.files.common.TagDot
 import org.prauga.files.common.rememberFileLauncher
 import org.prauga.files.core.model.FileCategory
 import org.prauga.files.core.model.FileEntry
 import org.prauga.files.core.model.StorageUsage
+import org.prauga.files.core.model.Tag
 
 @Composable
 fun HomeScreen(
@@ -49,12 +51,14 @@ fun HomeScreen(
     onOpenFolder: (String) -> Unit,
     onOpenCategory: (FileCategory) -> Unit,
     onOpenTrash: () -> Unit,
+    onOpenTag: (String) -> Unit,
     bottomBar: @Composable () -> Unit,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val recent by viewModel.recent.collectAsStateWithLifecycle()
     val favourites by viewModel.favouriteFolders.collectAsStateWithLifecycle()
+    val tags by viewModel.tags.collectAsStateWithLifecycle()
     LifecycleResumeEffect(viewModel) {
         viewModel.onEvent(HomeEvent.Refresh)
         onPauseOrDispose {}
@@ -63,11 +67,13 @@ fun HomeScreen(
         state,
         recent = recent,
         favourites = favourites,
+        tags = tags,
         onEvent = viewModel::onEvent,
         onOpenDevice = onOpenDevice,
         onOpenFolder = onOpenFolder,
         onOpenCategory = onOpenCategory,
         onOpenTrash = onOpenTrash,
+        onOpenTag = onOpenTag,
         bottomBar = bottomBar,
     )
 }
@@ -77,11 +83,13 @@ private fun HomeContent(
     state: UiState<StorageUsage>,
     recent: List<FileEntry.File>,
     favourites: List<String>,
+    tags: List<Tag>,
     onEvent: (HomeEvent) -> Unit,
     onOpenDevice: () -> Unit,
     onOpenFolder: (String) -> Unit,
     onOpenCategory: (FileCategory) -> Unit,
     onOpenTrash: () -> Unit,
+    onOpenTag: (String) -> Unit,
     bottomBar: @Composable () -> Unit,
 ) {
     val barColors = PvotProportionBarDefaults.tonalColors()
@@ -195,6 +203,26 @@ private fun HomeContent(
                             iconStyle = PvotRowIconStyle.Plain,
                             chevron = PvotRowChevron.Arrow,
                         )
+                    }
+                }
+            }
+            if (tags.isNotEmpty()) {
+                item {
+                    PvotListGroup(
+                        modifier = Modifier.fillMaxWidth(),
+                        title = stringResource(R.string.home_tags),
+                    ) {
+                        tags.forEach { tag ->
+                            item {
+                                PvotPreferenceRow(
+                                    title = tag.name,
+                                    onClick = { onOpenTag(tag.name) },
+                                    icon = { TagDot(tag.color) },
+                                    iconStyle = PvotRowIconStyle.Plain,
+                                    chevron = PvotRowChevron.Arrow,
+                                )
+                            }
+                        }
                     }
                 }
             }

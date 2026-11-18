@@ -21,10 +21,13 @@ import org.junit.Test
 import org.prauga.files.core.data.FavouritesRepository
 import org.prauga.files.core.data.RecentFilesRepository
 import org.prauga.files.core.data.StorageUsageRepository
+import org.prauga.files.core.data.TagsRepository
 import org.prauga.files.core.model.CategoryUsage
 import org.prauga.files.core.model.FileCategory
 import org.prauga.files.core.model.FileEntry
+import org.prauga.files.core.model.FileOperationResult
 import org.prauga.files.core.model.StorageUsage
+import org.prauga.files.core.model.Tag
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class HomeViewModelTest {
@@ -51,6 +54,7 @@ class HomeViewModelTest {
             HomeViewModel(
                 recentFiles = FakeRecentFilesRepository(),
                 favourites = FakeFavouritesRepository(),
+                tags = FakeTagsRepository(),
                 repository = FakeStorageUsageRepository { usage },
             )
 
@@ -65,6 +69,7 @@ class HomeViewModelTest {
             HomeViewModel(
                 recentFiles = FakeRecentFilesRepository(),
                 favourites = FakeFavouritesRepository(),
+                tags = FakeTagsRepository(),
                 repository = FakeStorageUsageRepository { null },
             )
 
@@ -82,6 +87,7 @@ class HomeViewModelTest {
                 FakeStorageUsageRepository { if (calls++ == 0) usage else pending.await() },
                 FakeRecentFilesRepository(),
                 FakeFavouritesRepository(),
+                FakeTagsRepository(),
             )
         viewModel.onEvent(HomeEvent.Refresh)
 
@@ -101,11 +107,26 @@ class HomeViewModelTest {
                 repository = FakeStorageUsageRepository { usage },
                 recentFiles = FakeRecentFilesRepository(listOf(file)),
                 favourites = FakeFavouritesRepository(),
+                tags = FakeTagsRepository(),
             )
 
         viewModel.onEvent(HomeEvent.Refresh)
 
         assertEquals(listOf(file), viewModel.recent.value)
+    }
+
+    private class FakeTagsRepository : TagsRepository {
+        override val tags: Flow<List<Tag>> = flowOf(emptyList())
+
+        override fun tagsOf(path: String): Flow<Set<String>> = flowOf(emptySet())
+
+        override suspend fun createTag(tag: Tag): FileOperationResult = FileOperationResult.Done
+
+        override suspend fun deleteTag(name: String) = Unit
+
+        override suspend fun setTagged(path: String, tagName: String, tagged: Boolean) = Unit
+
+        override suspend fun entriesTagged(tagName: String): List<FileEntry> = emptyList()
     }
 
     private class FakeFavouritesRepository : FavouritesRepository {

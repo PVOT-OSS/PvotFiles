@@ -18,8 +18,10 @@ import kotlinx.coroutines.launch
 import org.prauga.files.core.data.FavouritesRepository
 import org.prauga.files.core.data.RecentFilesRepository
 import org.prauga.files.core.data.StorageUsageRepository
+import org.prauga.files.core.data.TagsRepository
 import org.prauga.files.core.model.FileEntry
 import org.prauga.files.core.model.StorageUsage
+import org.prauga.files.core.model.Tag
 
 @HiltViewModel
 class HomeViewModel
@@ -28,6 +30,7 @@ constructor(
     private val repository: StorageUsageRepository,
     private val recentFiles: RecentFilesRepository,
     favourites: FavouritesRepository,
+    tags: TagsRepository,
 ) : ViewModel() {
     private val mutableState = MutableStateFlow<UiState<StorageUsage>>(UiState.Loading)
     val state: StateFlow<UiState<StorageUsage>> = mutableState.asStateFlow()
@@ -39,6 +42,8 @@ constructor(
             SharingStarted.WhileSubscribed(5_000),
             emptyList(),
         )
+    val tags: StateFlow<List<Tag>> =
+        tags.tags.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
     private var measuring: Job? = null
 
     fun onEvent(event: HomeEvent) {
