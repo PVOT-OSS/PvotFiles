@@ -19,6 +19,10 @@ Only how you like to see your files: the sort order, list or grid view, and whet
 are shown. It is kept on your device. The app reads your files to show them; it keeps no copy of
 them and no list of what you open.
 
+Files you delete go to Recently deleted, a hidden `.trash-files` folder on your storage, with a
+note of where each came from and when. They stay there for 30 days, or until you restore them or
+delete them forever.
+
 ## Permissions
 
 - **All files access** (`MANAGE_EXTERNAL_STORAGE`): lets the app show and manage the files on
