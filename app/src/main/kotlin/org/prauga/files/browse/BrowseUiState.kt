@@ -12,5 +12,7 @@ data class BrowseUiState(
     val folderName: String?,
     val canGoUp: Boolean,
     val options: DisplayOptions,
+    val clipboard: Clipboard? = null,
+    val transferring: Boolean = false,
     val content: UiState<List<FileEntry>>,
 )

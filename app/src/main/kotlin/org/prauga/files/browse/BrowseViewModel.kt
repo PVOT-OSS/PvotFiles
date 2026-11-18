@@ -33,7 +33,9 @@ import org.prauga.files.core.model.DirectoryListing
 import org.prauga.files.core.model.DisplayOptions
 import org.prauga.files.core.model.FileEntry
 import org.prauga.files.core.model.FileOperationResult
+import org.prauga.files.core.model.TransferKind
 import org.prauga.files.core.model.sortedFor
+import org.prauga.files.transfer.TransferQueue
 
 @HiltViewModel
 class BrowseViewModel
@@ -45,12 +47,26 @@ constructor(
     private val displayOptions: DisplayOptionsRepository,
     private val operations: FileOperationsRepository,
     private val trash: TrashRepository,
+    private val transfers: TransferQueue,
 ) : ViewModel() {
     private val effectChannel = Channel<BrowseEffect>(Channel.BUFFERED)
     val effects: Flow<BrowseEffect> = effectChannel.receiveAsFlow()
     private val root: String? = storage.primaryRootPath()
     private val path: StateFlow<String?> = savedStateHandle.getStateFlow(KEY_PATH, root)
     private val attempt = MutableStateFlow(0)
+    private val clipboardPaths =
+        savedStateHandle.getStateFlow<List<String>>(KEY_CLIP_PATHS, emptyList())
+    private val clipboardKind = savedStateHandle.getStateFlow<String?>(KEY_CLIP_KIND, null)
+    private val clipboard: StateFlow<Clipboard?> =
+        combine(clipboardPaths, clipboardKind) { paths, kind ->
+                TransferKind.entries
+                    .firstOrNull { it.name == kind }
+                    ?.takeIf { paths.isNotEmpty() }
+                    ?.let { Clipboard(paths, it) }
+            }
+            .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+    private val transferring = MutableStateFlow(false)
+    private val reportedTransfers = mutableSetOf<String>()
     private val options: StateFlow<DisplayOptions> =
         displayOptions.options.stateIn(viewModelScope, SharingStarted.Eagerly, DisplayOptions())
 
@@ -69,11 +85,34 @@ constructor(
                 }
             }
             .combine(options) { (current, content), options -> stateFor(current, options, content) }
+            .combine(clipboard) { state, clipboard -> state.copy(clipboard = clipboard) }
+            .combine(transferring) { state, running -> state.copy(transferring = running) }
             .stateIn(
                 viewModelScope,
                 SharingStarted.WhileSubscribed(5_000),
                 stateFor(path.value, options.value, UiState.Loading),
             )
+
+    init {
+        viewModelScope.launch {
+            var seeded = false
+            transfers.updates.collect { updates ->
+                transferring.value = updates.any { it.running }
+                val finished = updates.mapNotNull { update -> update.outcome?.let { update to it } }
+                if (!seeded) {
+                    seeded = true
+                    reportedTransfers += finished.map { it.first.id }
+                } else {
+                    finished
+                        .filter { (update, _) -> reportedTransfers.add(update.id) }
+                        .forEach { (update, outcome) ->
+                            attempt.value++
+                            effectChannel.send(BrowseEffect.TransferFinished(update.kind, outcome))
+                        }
+                }
+            }
+        }
+    }
 
     fun onEvent(event: BrowseEvent) {
         when (event) {
@@ -95,7 +134,23 @@ constructor(
             is BrowseEvent.Rename -> perform { operations.rename(event.path, event.newName) }
             is BrowseEvent.Delete -> delete(event.path)
             is BrowseEvent.Restore -> perform { trash.restore(event.trashId) }
+            is BrowseEvent.Copy -> setClipboard(listOf(event.path), TransferKind.Copy)
+            is BrowseEvent.Move -> setClipboard(listOf(event.path), TransferKind.Move)
+            BrowseEvent.Paste -> paste()
+            BrowseEvent.ClearClipboard -> setClipboard(emptyList(), null)
         }
+    }
+
+    private fun setClipboard(paths: List<String>, kind: TransferKind?) {
+        savedStateHandle[KEY_CLIP_PATHS] = paths
+        savedStateHandle[KEY_CLIP_KIND] = kind?.name
+    }
+
+    private fun paste() {
+        val destination = path.value ?: return
+        val pending = clipboard.value ?: return
+        transfers.start(pending.paths, destination, pending.kind)
+        setClipboard(emptyList(), null)
     }
 
     private fun delete(target: String) {
@@ -153,5 +208,7 @@ constructor(
 
     private companion object {
         const val KEY_PATH = "path"
+        const val KEY_CLIP_PATHS = "clipboard_paths"
+        const val KEY_CLIP_KIND = "clipboard_kind"
     }
 }

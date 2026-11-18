@@ -32,8 +32,12 @@ import org.prauga.files.core.model.DisplayOptions
 import org.prauga.files.core.model.FileEntry
 import org.prauga.files.core.model.FileOperationResult
 import org.prauga.files.core.model.SortOrder
+import org.prauga.files.core.model.TransferKind
 import org.prauga.files.core.model.TrashedItem
 import org.prauga.files.core.model.ViewLayout
+import org.prauga.files.transfer.TransferOutcome
+import org.prauga.files.transfer.TransferQueue
+import org.prauga.files.transfer.TransferUpdate
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class BrowseViewModelTest {
@@ -253,12 +257,76 @@ class BrowseViewModelTest {
         assertEquals(UiState.Success(listOf(music)), viewModel.state.value.content)
     }
 
+    @Test
+    fun copyThenPasteStartsATransferHereAndClearsTheClipboard() = runTest {
+        val transfers = FakeTransferQueue()
+        val viewModel = viewModel(transfers = transfers)
+        collect(viewModel)
+
+        viewModel.onEvent(BrowseEvent.Copy("/elsewhere/a.txt"))
+        assertEquals(
+            Clipboard(listOf("/elsewhere/a.txt"), TransferKind.Copy),
+            viewModel.state.value.clipboard,
+        )
+
+        viewModel.onEvent(BrowseEvent.Open(music))
+        viewModel.onEvent(BrowseEvent.Paste)
+
+        assertEquals(
+            listOf(Triple(listOf("/elsewhere/a.txt"), "/storage/Music", TransferKind.Copy)),
+            transfers.started,
+        )
+        assertEquals(null, viewModel.state.value.clipboard)
+    }
+
+    @Test
+    fun theClipboardSurvivesProcessDeath() = runTest {
+        val saved = SavedStateHandle()
+        viewModel(saved = saved).onEvent(BrowseEvent.Move("/storage/a.txt"))
+
+        val restored = viewModel(saved = saved)
+        collect(restored)
+
+        assertEquals(
+            Clipboard(listOf("/storage/a.txt"), TransferKind.Move),
+            restored.state.value.clipboard,
+        )
+    }
+
+    @Test
+    fun aFinishedTransferIsReportedOnceAndOldOnesAreNot() = runTest {
+        val transfers = FakeTransferQueue()
+        transfers.updates.value =
+            listOf(TransferUpdate("old", TransferKind.Copy, false, TransferOutcome.Done))
+        val viewModel = viewModel(transfers = transfers)
+        collect(viewModel)
+        val effects = mutableListOf<BrowseEffect>()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.effects.collect { effects += it }
+        }
+
+        transfers.updates.value =
+            transfers.updates.value + TransferUpdate("new", TransferKind.Move, true, null)
+        assertTrue(viewModel.state.value.transferring)
+        transfers.updates.value =
+            transfers.updates.value.dropLast(1) +
+                TransferUpdate("new", TransferKind.Move, false, TransferOutcome.Done)
+        transfers.updates.value = transfers.updates.value.toList()
+
+        assertEquals(
+            listOf(BrowseEffect.TransferFinished(TransferKind.Move, TransferOutcome.Done)),
+            effects,
+        )
+        assertFalse(viewModel.state.value.transferring)
+    }
+
     private fun viewModel(
         root: String? = "/storage",
         listings: FakeDirectoryRepository = directories,
         operations: FakeFileOperationsRepository = FakeFileOperationsRepository(),
         saved: SavedStateHandle = SavedStateHandle(),
         trash: FakeTrashRepository = FakeTrashRepository(),
+        transfers: FakeTransferQueue = FakeTransferQueue(),
     ) =
         BrowseViewModel(
             saved,
@@ -267,6 +335,7 @@ class BrowseViewModelTest {
             FakeDisplayOptionsRepository(),
             operations,
             trash,
+            transfers,
         )
 
     private fun TestScope.collect(viewModel: BrowseViewModel) {
@@ -303,6 +372,15 @@ class BrowseViewModelTest {
         override suspend fun rename(path: String, newName: String): FileOperationResult {
             renamed += path to newName
             return result
+        }
+    }
+
+    private class FakeTransferQueue : TransferQueue {
+        override val updates = MutableStateFlow<List<TransferUpdate>>(emptyList())
+        val started = mutableListOf<Triple<List<String>, String, TransferKind>>()
+
+        override fun start(sources: List<String>, destination: String, kind: TransferKind) {
+            started += Triple(sources, destination, kind)
         }
     }
 

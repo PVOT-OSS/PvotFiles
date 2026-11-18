@@ -52,6 +52,24 @@
     <string name="rename_title">Rename</string>
     <string name="moved_to_trash">%1$s moved to Recently deleted</string>
     <string name="undo">Undo</string>
+    <string name="action_copy">Copy</string>
+    <string name="action_move">Move</string>
+    <string name="paste_here">Paste here</string>
+    <plurals name="paste_copy_count">
+        <item quantity="one">%d item to copy</item>
+        <item quantity="other">%d items to copy</item>
+    </plurals>
+    <plurals name="paste_move_count">
+        <item quantity="one">%d item to move</item>
+        <item quantity="other">%d items to move</item>
+    </plurals>
+    <string name="transfer_copied">Copied</string>
+    <string name="transfer_moved">Moved</string>
+    <string name="transfer_into_itself">A folder can\'t go inside itself</string>
+    <string name="transfer_copy_cancelled">Copy stopped</string>
+    <string name="transfer_move_cancelled">Move stopped</string>
+    <string name="transfer_copy_failed">Couldn\'t copy everything. Check the storage and try again.</string>
+    <string name="transfer_move_failed">Couldn\'t move everything. Check the storage and try again.</string>
     <string name="transfer_channel">Copying and moving</string>
     <string name="transfer_copying">Copying files</string>
     <string name="transfer_moving">Moving files</string>

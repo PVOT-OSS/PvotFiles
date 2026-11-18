@@ -3,7 +3,12 @@
 
 package org.prauga.files.browse
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -51,6 +57,7 @@ import org.prauga.files.common.NameDialog
 import org.prauga.files.common.operationMessages
 import org.prauga.files.common.rememberFileLauncher
 import org.prauga.files.common.rememberGridTopBarCompact
+import org.prauga.files.common.transferMessages
 import org.prauga.files.core.model.FileEntry
 import org.prauga.files.core.model.ViewLayout
 
@@ -84,11 +91,27 @@ private fun BrowseContent(
     val messages = operationMessages()
     val trashedMessage = stringResource(R.string.moved_to_trash)
     val undo = stringResource(R.string.undo)
+    val transferMessages = transferMessages()
+    val context = LocalContext.current
+    val requestNotifications =
+        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
+            onEvent(BrowseEvent.Paste)
+        }
+    val paste = {
+        val asked =
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) !=
+                    PackageManager.PERMISSION_GRANTED
+        if (asked) requestNotifications.launch(Manifest.permission.POST_NOTIFICATIONS)
+        else onEvent(BrowseEvent.Paste)
+    }
     LaunchedEffect(effects) {
         effects.collect { effect ->
             when (effect) {
                 is BrowseEffect.OperationFailed ->
                     snackbar.showSnackbar(messages.getValue(effect.result))
+                is BrowseEffect.TransferFinished ->
+                    snackbar.showSnackbar(transferMessages.getValue(effect.kind to effect.outcome))
                 is BrowseEffect.Trashed -> {
                     val result =
                         snackbar.showSnackbar(
@@ -137,6 +160,16 @@ private fun BrowseContent(
         },
         bottomBar = bottomBar,
         snackbarHost = { PvotSnackbarHost(snackbar) },
+        floatingAction = {
+            state.clipboard?.let { clipboard ->
+                PasteBar(
+                    clipboard = clipboard,
+                    canPaste = state.path != null,
+                    onPaste = paste,
+                    onCancel = { onEvent(BrowseEvent.ClearClipboard) },
+                )
+            }
+        },
         overlay = {
             ViewOptionsSheet(
                 visible = optionsVisible,
@@ -150,6 +183,8 @@ private fun BrowseContent(
                 onDismiss = { actionsPath = null },
                 onRename = { renamePath = it.path },
                 onDelete = { onEvent(BrowseEvent.Delete(it.path)) },
+                onCopy = { onEvent(BrowseEvent.Copy(it.path)) },
+                onMove = { onEvent(BrowseEvent.Move(it.path)) },
             )
             NameDialog(
                 visible = renameEntry != null,

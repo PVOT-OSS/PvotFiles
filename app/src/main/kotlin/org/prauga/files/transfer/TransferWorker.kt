@@ -43,7 +43,9 @@ class TransferWorker(context: Context, parameters: WorkerParameters) :
                     setForegroundAsync(foregroundInfo(kind, progress))
                 }
             }
-        val output = workDataOf(KEY_KIND to kind.name, KEY_OUTCOME to result.outcome())
+        // Outputs become inputs of the transfer appended after this one, so no input key may
+        // appear.
+        val output = workDataOf(KEY_OUTCOME to result.outcome())
         return when (result) {
             is TransferResult.Done -> Result.success(output)
             else -> Result.failure(output)

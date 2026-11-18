@@ -12,7 +12,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import com.prauga.pvot.designsystem.components.PvotBottomSheet
 import com.prauga.pvot.designsystem.components.PvotSheetItem
 import org.prauga.files.R
 import org.prauga.files.core.model.FileEntry
@@ -24,11 +23,13 @@ fun FileActionsSheet(
     onDismiss: () -> Unit,
     onRename: ((FileEntry) -> Unit)? = null,
     onDelete: ((FileEntry) -> Unit)? = null,
+    onCopy: ((FileEntry) -> Unit)? = null,
+    onMove: ((FileEntry) -> Unit)? = null,
 ) {
     var shown by remember { mutableStateOf(entry) }
     if (entry != null) shown = entry
     val target = shown
-    PvotBottomSheet(visible = entry != null, onDismissRequest = onDismiss, title = target?.name) {
+    FilesBottomSheet(visible = entry != null, onDismissRequest = onDismiss, title = target?.name) {
         if (target is FileEntry.File) {
             Action(R.string.action_open_with, R.drawable.ic_open_with) {
                 launcher.openWith(target)
@@ -37,6 +38,18 @@ fun FileActionsSheet(
             Action(R.string.action_share, R.drawable.ic_share) {
                 launcher.share(target)
                 onDismiss()
+            }
+        }
+        if (target != null && onCopy != null) {
+            Action(R.string.action_copy, R.drawable.ic_copy) {
+                onDismiss()
+                onCopy(target)
+            }
+        }
+        if (target != null && onMove != null) {
+            Action(R.string.action_move, R.drawable.ic_move) {
+                onDismiss()
+                onMove(target)
             }
         }
         if (target != null && onRename != null) {
