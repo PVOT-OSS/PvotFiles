@@ -63,6 +63,7 @@ import org.prauga.files.common.rememberGridTopBarCompact
 import org.prauga.files.common.transferMessages
 import org.prauga.files.core.model.FileEntry
 import org.prauga.files.core.model.ViewLayout
+import org.prauga.files.info.InfoSheet
 import org.prauga.files.tags.TagPickerSheet
 
 @Composable
@@ -160,6 +161,7 @@ private fun BrowseContent(
     var actionsPath by rememberSaveable { mutableStateOf<String?>(null) }
     var renamePath by rememberSaveable { mutableStateOf<String?>(null) }
     var tagsPath by rememberSaveable { mutableStateOf<String?>(null) }
+    var infoPath by rememberSaveable { mutableStateOf<String?>(null) }
     val actionsEntry = entries.firstOrNull { it.path == actionsPath }
     val renameEntry = entries.firstOrNull { it.path == renamePath }
     val selecting = state.selection.isNotEmpty()
@@ -254,7 +256,9 @@ private fun BrowseContent(
                 onCopy = { onEvent(BrowseEvent.Copy(it.path)) },
                 onMove = { onEvent(BrowseEvent.Move(it.path)) },
                 onTags = { tagsPath = it.path },
+                onInfo = { infoPath = it.path },
             )
+            InfoSheet(path = infoPath, onDismiss = { infoPath = null })
             TagPickerSheet(
                 paths =
                     when {
@@ -275,6 +279,13 @@ private fun BrowseContent(
                 onCopy = { onEvent(BrowseEvent.CopySelection) },
                 onMove = { onEvent(BrowseEvent.MoveSelection) },
                 onTags = { tagSelection = true },
+                onInfo =
+                    state.selection.singleOrNull()?.let { only ->
+                        {
+                            onEvent(BrowseEvent.ClearSelection)
+                            infoPath = only
+                        }
+                    },
             )
             NameDialog(
                 visible = renameEntry != null,

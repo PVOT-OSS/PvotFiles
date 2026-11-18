@@ -61,6 +61,24 @@
     <string name="action_share">Share</string>
     <string name="action_rename">Rename</string>
     <string name="action_tags">Tags</string>
+    <string name="action_info">Info</string>
+    <string name="info_kind">Type</string>
+    <string name="info_location">Location</string>
+    <string name="info_size">Size</string>
+    <plurals name="info_size_bytes">
+        <item quantity="one">%1$s (%2$,d byte)</item>
+        <item quantity="other">%1$s (%2$,d bytes)</item>
+    </plurals>
+    <string name="info_contents">Contents</string>
+    <string name="info_modified">Modified</string>
+    <string name="info_taken">Taken</string>
+    <string name="info_dimensions">Dimensions</string>
+    <string name="info_dimensions_value">%1$d × %2$d</string>
+    <string name="info_duration">Length</string>
+    <string name="info_coordinates">Place</string>
+    <string name="info_show_location">Allow Files to read where photos were taken</string>
+    <string name="info_unknown">Unknown</string>
+    <string name="info_unavailable">This item isn\'t there any more.</string>
     <string name="tag_new">New tag</string>
     <string name="home_tags">Tags</string>
     <string name="location_add">Add a location</string>

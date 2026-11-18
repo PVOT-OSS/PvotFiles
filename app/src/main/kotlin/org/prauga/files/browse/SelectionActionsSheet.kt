@@ -20,6 +20,7 @@ fun SelectionActionsSheet(
     onCopy: () -> Unit,
     onMove: () -> Unit,
     onTags: () -> Unit,
+    onInfo: (() -> Unit)?,
 ) {
     FilesBottomSheet(
         visible = visible,
@@ -29,6 +30,7 @@ fun SelectionActionsSheet(
         Item(R.string.action_copy, R.drawable.ic_copy, onDismiss, onCopy)
         Item(R.string.action_move, R.drawable.ic_move, onDismiss, onMove)
         Item(R.string.action_tags, R.drawable.ic_tag, onDismiss, onTags)
+        if (onInfo != null) Item(R.string.action_info, R.drawable.ic_info, onDismiss, onInfo)
     }
 }
 
