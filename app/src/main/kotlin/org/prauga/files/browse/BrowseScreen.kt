@@ -49,7 +49,7 @@ private fun BrowseContent(state: BrowseUiState, onEvent: (BrowseEvent) -> Unit) 
     PvotScreenScaffold(
         topBar = {
             PvotTopBar(
-                title = state.folderName ?: stringResource(R.string.browse_internal_storage),
+                title = state.folderName ?: stringResource(R.string.browse_root_title),
                 onBack = if (state.canGoUp) ({ onEvent(BrowseEvent.Up) }) else null,
             )
         }

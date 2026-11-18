@@ -9,7 +9,7 @@
     <string name="access_message">Files needs access to all files to show and manage what is on your storage.</string>
     <string name="access_allow">Allow access</string>
 
-    <string name="browse_internal_storage">Internal storage</string>
+    <string name="browse_root_title">On my device</string>
     <string name="browse_empty">This folder is empty</string>
     <string name="browse_open">Open</string>
     <string name="browse_error_title">Couldn\'t open this folder</string>
