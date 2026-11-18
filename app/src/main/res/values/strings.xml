@@ -63,6 +63,13 @@
     <string name="action_tags">Tags</string>
     <string name="tag_new">New tag</string>
     <string name="home_tags">Tags</string>
+    <string name="location_add">Add a location</string>
+    <string name="location_folder">Folder</string>
+    <string name="location_remove">Remove location</string>
+    <string name="location_remove_title">Remove %1$s?</string>
+    <string name="location_remove_message">Its files stay where they are. Files just stops showing it here.</string>
+    <string name="location_error_title">Couldn\'t open this location</string>
+    <string name="location_error_message">The app that provides it may be closed or signed out.</string>
     <string name="settings_title">Settings</string>
     <string name="settings_display">Display</string>
     <string name="settings_show_hidden_summary">Files and folders whose names start with a dot</string>

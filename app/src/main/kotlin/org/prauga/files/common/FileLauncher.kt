@@ -37,21 +37,29 @@ class FileLauncher(
     }
 
     fun share(file: FileEntry.File) {
-        val uri = uriFor(file) ?: return
+        shareUri(uriFor(file) ?: return, mimeTypeOf(file))
+    }
+
+    fun openUri(uri: Uri, mimeType: String) {
+        start(viewIntent(uri, mimeType))
+    }
+
+    fun shareUri(uri: Uri, mimeType: String) {
         val send =
             Intent(Intent.ACTION_SEND)
-                .setType(mimeTypeOf(file))
+                .setType(mimeType)
                 .putExtra(Intent.EXTRA_STREAM, uri)
                 .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         start(Intent.createChooser(send, null))
     }
 
-    private fun viewIntent(file: FileEntry.File): Intent? {
-        val uri = uriFor(file) ?: return null
-        return Intent(Intent.ACTION_VIEW)
-            .setDataAndType(uri, mimeTypeOf(file))
+    private fun viewIntent(file: FileEntry.File): Intent? =
+        uriFor(file)?.let { viewIntent(it, mimeTypeOf(file)) }
+
+    private fun viewIntent(uri: Uri, mimeType: String): Intent =
+        Intent(Intent.ACTION_VIEW)
+            .setDataAndType(uri, mimeType)
             .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-    }
 
     private fun uriFor(file: FileEntry.File): Uri? =
         try {

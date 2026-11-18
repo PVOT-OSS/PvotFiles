@@ -20,7 +20,9 @@ import org.prauga.files.access.AccessScreen
 import org.prauga.files.browse.BrowseScreen
 import org.prauga.files.category.CategoryScreen
 import org.prauga.files.core.model.FileCategory
+import org.prauga.files.core.model.SavedLocation
 import org.prauga.files.home.HomeScreen
+import org.prauga.files.locations.TreeScreen
 import org.prauga.files.search.SearchScreen
 import org.prauga.files.settings.AboutScreen
 import org.prauga.files.settings.SettingsScreen
@@ -78,9 +80,14 @@ private fun HomeTab(
     var tagOpen by rememberSaveable { mutableStateOf<String?>(null) }
     var settingsOpen by rememberSaveable { mutableStateOf(false) }
     var aboutOpen by rememberSaveable { mutableStateOf(false) }
+    var locationUri by rememberSaveable { mutableStateOf<String?>(null) }
+    var locationLabel by rememberSaveable { mutableStateOf("") }
+    val location = locationUri?.let { SavedLocation(it, locationLabel) }
     val open = category
     val tag = tagOpen
     when {
+        location != null ->
+            TreeScreen(location, onBack = { locationUri = null }, bottomBar = bottomBar)
         aboutOpen -> AboutScreen(onBack = { aboutOpen = false }, bottomBar = bottomBar)
         settingsOpen ->
             SettingsScreen(
@@ -105,6 +112,10 @@ private fun HomeTab(
                 onOpenTrash = { trashOpen = true },
                 onOpenTag = { tagOpen = it },
                 onOpenSettings = { settingsOpen = true },
+                onOpenLocation = {
+                    locationLabel = it.label
+                    locationUri = it.uri
+                },
                 bottomBar = bottomBar,
             )
     }

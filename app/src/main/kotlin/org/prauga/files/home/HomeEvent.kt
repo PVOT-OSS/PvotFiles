@@ -5,4 +5,6 @@ package org.prauga.files.home
 
 sealed interface HomeEvent {
     data object Refresh : HomeEvent
+
+    data class AddLocation(val treeUri: String) : HomeEvent
 }

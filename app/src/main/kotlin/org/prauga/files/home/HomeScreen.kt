@@ -3,6 +3,8 @@
 
 package org.prauga.files.home
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -43,6 +45,7 @@ import org.prauga.files.common.TagDot
 import org.prauga.files.common.rememberFileLauncher
 import org.prauga.files.core.model.FileCategory
 import org.prauga.files.core.model.FileEntry
+import org.prauga.files.core.model.SavedLocation
 import org.prauga.files.core.model.StorageUsage
 import org.prauga.files.core.model.Tag
 import org.prauga.files.core.model.Volume
@@ -55,6 +58,7 @@ fun HomeScreen(
     onOpenTrash: () -> Unit,
     onOpenTag: (String) -> Unit,
     onOpenSettings: () -> Unit,
+    onOpenLocation: (SavedLocation) -> Unit,
     bottomBar: @Composable () -> Unit,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
@@ -63,6 +67,11 @@ fun HomeScreen(
     val favourites by viewModel.favouriteFolders.collectAsStateWithLifecycle()
     val tags by viewModel.tags.collectAsStateWithLifecycle()
     val volumes by viewModel.removableVolumes.collectAsStateWithLifecycle()
+    val locations by viewModel.savedLocations.collectAsStateWithLifecycle()
+    val pickFolder =
+        rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
+            if (uri != null) viewModel.onEvent(HomeEvent.AddLocation(uri.toString()))
+        }
     LifecycleResumeEffect(viewModel) {
         viewModel.onEvent(HomeEvent.Refresh)
         onPauseOrDispose {}
@@ -73,6 +82,7 @@ fun HomeScreen(
         favourites = favourites,
         tags = tags,
         volumes = volumes,
+        locations = locations,
         onEvent = viewModel::onEvent,
         onOpenDevice = onOpenDevice,
         onOpenFolder = onOpenFolder,
@@ -80,6 +90,8 @@ fun HomeScreen(
         onOpenTrash = onOpenTrash,
         onOpenTag = onOpenTag,
         onOpenSettings = onOpenSettings,
+        onOpenLocation = onOpenLocation,
+        onAddLocation = { pickFolder.launch(null) },
         bottomBar = bottomBar,
     )
 }
@@ -91,6 +103,7 @@ private fun HomeContent(
     favourites: List<String>,
     tags: List<Tag>,
     volumes: List<Volume>,
+    locations: List<SavedLocation>,
     onEvent: (HomeEvent) -> Unit,
     onOpenDevice: () -> Unit,
     onOpenFolder: (String) -> Unit,
@@ -98,6 +111,8 @@ private fun HomeContent(
     onOpenTrash: () -> Unit,
     onOpenTag: (String) -> Unit,
     onOpenSettings: () -> Unit,
+    onOpenLocation: (SavedLocation) -> Unit,
+    onAddLocation: () -> Unit,
     bottomBar: @Composable () -> Unit,
 ) {
     val barColors = PvotProportionBarDefaults.tonalColors()
@@ -221,6 +236,33 @@ private fun HomeContent(
                                 chevron = PvotRowChevron.Arrow,
                             )
                         }
+                    }
+                    locations.forEach { location ->
+                        item {
+                            PvotPreferenceRow(
+                                title = location.label,
+                                onClick = { onOpenLocation(location) },
+                                icon = {
+                                    Icon(
+                                        painterResource(R.drawable.ic_cloud),
+                                        contentDescription = null,
+                                    )
+                                },
+                                iconStyle = PvotRowIconStyle.Plain,
+                                chevron = PvotRowChevron.Arrow,
+                            )
+                        }
+                    }
+                    item {
+                        PvotPreferenceRow(
+                            title = stringResource(R.string.location_add),
+                            onClick = onAddLocation,
+                            icon = {
+                                Icon(painterResource(R.drawable.ic_add), contentDescription = null)
+                            },
+                            iconStyle = PvotRowIconStyle.Plain,
+                            showChevron = false,
+                        )
                     }
                     item {
                         PvotPreferenceRow(

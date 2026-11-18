@@ -18,15 +18,18 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import org.prauga.files.core.data.DocumentTreeRepository
 import org.prauga.files.core.data.FavouritesRepository
 import org.prauga.files.core.data.RecentFilesRepository
 import org.prauga.files.core.data.StorageRepository
 import org.prauga.files.core.data.StorageUsageRepository
 import org.prauga.files.core.data.TagsRepository
 import org.prauga.files.core.model.CategoryUsage
+import org.prauga.files.core.model.DocumentEntry
 import org.prauga.files.core.model.FileCategory
 import org.prauga.files.core.model.FileEntry
 import org.prauga.files.core.model.FileOperationResult
+import org.prauga.files.core.model.SavedLocation
 import org.prauga.files.core.model.StorageUsage
 import org.prauga.files.core.model.Tag
 import org.prauga.files.core.model.Volume
@@ -58,6 +61,7 @@ class HomeViewModelTest {
                 favourites = FakeFavouritesRepository(),
                 tags = FakeTagsRepository(),
                 storage = FakeStorageRepository(),
+                locations = FakeDocumentTreeRepository(),
                 repository = FakeStorageUsageRepository { usage },
             )
 
@@ -74,6 +78,7 @@ class HomeViewModelTest {
                 favourites = FakeFavouritesRepository(),
                 tags = FakeTagsRepository(),
                 storage = FakeStorageRepository(),
+                locations = FakeDocumentTreeRepository(),
                 repository = FakeStorageUsageRepository { null },
             )
 
@@ -93,6 +98,7 @@ class HomeViewModelTest {
                 FakeFavouritesRepository(),
                 FakeTagsRepository(),
                 FakeStorageRepository(),
+                FakeDocumentTreeRepository(),
             )
         viewModel.onEvent(HomeEvent.Refresh)
 
@@ -114,11 +120,25 @@ class HomeViewModelTest {
                 favourites = FakeFavouritesRepository(),
                 tags = FakeTagsRepository(),
                 storage = FakeStorageRepository(),
+                locations = FakeDocumentTreeRepository(),
             )
 
         viewModel.onEvent(HomeEvent.Refresh)
 
         assertEquals(listOf(file), viewModel.recent.value)
+    }
+
+    private class FakeDocumentTreeRepository : DocumentTreeRepository {
+        override val locations: Flow<List<SavedLocation>> = flowOf(emptyList())
+
+        override suspend fun add(treeUri: String): SavedLocation? = null
+
+        override suspend fun remove(treeUri: String) = Unit
+
+        override suspend fun children(treeUri: String, documentId: String?): List<DocumentEntry>? =
+            null
+
+        override fun documentUri(treeUri: String, documentId: String): String = treeUri
     }
 
     private class FakeStorageRepository : StorageRepository {
@@ -150,6 +170,7 @@ class HomeViewModelTest {
                 favourites = FakeFavouritesRepository(),
                 tags = FakeTagsRepository(),
                 storage = FakeStorageRepository(),
+                locations = FakeDocumentTreeRepository(),
             )
 
         viewModel.onEvent(HomeEvent.Refresh)
