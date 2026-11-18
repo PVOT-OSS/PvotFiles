@@ -6,5 +6,5 @@ package org.prauga.files.core.data
 import org.prauga.files.core.model.DirectoryListing
 
 interface DirectoryRepository {
-    suspend fun list(path: String): DirectoryListing
+    suspend fun list(path: String, includeHidden: Boolean): DirectoryListing
 }

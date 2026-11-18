@@ -131,7 +131,7 @@ class BrowseViewModelTest {
 
     private class FakeDirectoryRepository(var listings: Map<String, DirectoryListing>) :
         DirectoryRepository {
-        override suspend fun list(path: String): DirectoryListing =
+        override suspend fun list(path: String, includeHidden: Boolean): DirectoryListing =
             listings[path] ?: DirectoryListing.NotFound
     }
 }

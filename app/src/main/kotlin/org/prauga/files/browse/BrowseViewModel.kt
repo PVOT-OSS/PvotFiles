@@ -67,7 +67,7 @@ constructor(
         if (current == null) {
             UiState.Error(message = "")
         } else {
-            when (val listing = directories.list(current)) {
+            when (val listing = directories.list(current, includeHidden = false)) {
                 is DirectoryListing.Entries -> UiState.Success(listing.entries)
                 DirectoryListing.NotFound,
                 DirectoryListing.Unreadable -> UiState.Error(message = "")

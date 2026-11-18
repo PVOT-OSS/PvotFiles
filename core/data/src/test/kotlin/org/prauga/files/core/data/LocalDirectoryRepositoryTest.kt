@@ -28,7 +28,7 @@ class LocalDirectoryRepositoryTest {
         File(root, "alpha/.two").writeText("")
         val repository = LocalDirectoryRepository(StandardTestDispatcher(testScheduler))
 
-        val listing = repository.list(root.path) as DirectoryListing.Entries
+        val listing = repository.list(root.path, includeHidden = false) as DirectoryListing.Entries
 
         assertEquals(listOf("alpha", "zeta", "A.txt", "b.txt"), listing.entries.map { it.name })
         assertEquals(1, (listing.entries[0] as FileEntry.Directory).childCount)
@@ -36,10 +36,27 @@ class LocalDirectoryRepositoryTest {
     }
 
     @Test
+    fun hiddenEntriesAreListedAndCountedWhenAsked() = runTest {
+        val root = folder.root
+        File(root, ".config").mkdir()
+        File(root, ".config/.secret").writeText("")
+        File(root, "a.txt").writeText("")
+        val repository = LocalDirectoryRepository(StandardTestDispatcher(testScheduler))
+
+        val listing = repository.list(root.path, includeHidden = true) as DirectoryListing.Entries
+
+        assertEquals(listOf(".config", "a.txt"), listing.entries.map { it.name })
+        assertEquals(1, (listing.entries[0] as FileEntry.Directory).childCount)
+    }
+
+    @Test
     fun missingFolderIsNotFound() = runTest {
         val repository = LocalDirectoryRepository(StandardTestDispatcher(testScheduler))
 
-        assertEquals(DirectoryListing.NotFound, repository.list(File(folder.root, "missing").path))
+        assertEquals(
+            DirectoryListing.NotFound,
+            repository.list(File(folder.root, "missing").path, includeHidden = false),
+        )
     }
 
     @Test
@@ -47,6 +64,6 @@ class LocalDirectoryRepositoryTest {
         val file = folder.newFile("note.txt")
         val repository = LocalDirectoryRepository(StandardTestDispatcher(testScheduler))
 
-        assertEquals(DirectoryListing.NotFound, repository.list(file.path))
+        assertEquals(DirectoryListing.NotFound, repository.list(file.path, includeHidden = false))
     }
 }
