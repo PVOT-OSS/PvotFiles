@@ -24,7 +24,8 @@ constructor(
         arguments: Array<String>,
         limit: Int? = null,
     ): List<FileEntry.File>? {
-        val root = storage.primaryRootPath() ?: return null
+        val roots = storage.volumes().associate { it.mediaStoreName to it.path }
+        if (roots.isEmpty()) return null
         val query =
             Bundle().apply {
                 putString(ContentResolver.QUERY_ARG_SQL_SELECTION, selection)
@@ -37,12 +38,13 @@ constructor(
             }
         return context.contentResolver
             .query(
-                MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY),
+                MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL),
                 arrayOf(
                     FileColumns.DISPLAY_NAME,
                     FileColumns.RELATIVE_PATH,
                     FileColumns.SIZE,
                     FileColumns.DATE_MODIFIED,
+                    FileColumns.VOLUME_NAME,
                 ),
                 query,
                 null,
@@ -52,8 +54,10 @@ constructor(
                 val relativePath = cursor.getColumnIndexOrThrow(FileColumns.RELATIVE_PATH)
                 val size = cursor.getColumnIndexOrThrow(FileColumns.SIZE)
                 val modified = cursor.getColumnIndexOrThrow(FileColumns.DATE_MODIFIED)
+                val volume = cursor.getColumnIndexOrThrow(FileColumns.VOLUME_NAME)
                 buildList {
                     while (cursor.moveToNext()) {
+                        val root = roots[cursor.getString(volume)] ?: continue
                         val displayName = cursor.getString(name) ?: continue
                         val folder = cursor.getString(relativePath).orEmpty()
                         val path = MediaStorePath.resolve(root, folder, displayName) ?: continue
