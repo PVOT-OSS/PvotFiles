@@ -5,6 +5,7 @@ package org.prauga.files.home
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -26,6 +27,7 @@ import com.prauga.pvot.designsystem.components.list.PvotRowChevron
 import com.prauga.pvot.designsystem.components.list.PvotRowIconStyle
 import com.prauga.pvot.designsystem.components.progress.PvotProportionBarDefaults
 import com.prauga.pvot.designsystem.navigation.PvotTopBar
+import com.prauga.pvot.designsystem.navigation.rememberPvotTopBarCompact
 import org.prauga.files.R
 import org.prauga.files.core.model.FileCategory
 import org.prauga.files.core.model.StorageUsage
@@ -60,12 +62,15 @@ private fun HomeContent(
     bottomBar: @Composable () -> Unit,
 ) {
     val barColors = PvotProportionBarDefaults.tonalColors()
+    val listState = rememberLazyListState()
+    val compact = rememberPvotTopBarCompact(listState)
     PvotScreenScaffold(
-        topBar = { PvotTopBar(title = stringResource(R.string.home_title)) },
+        topBar = { PvotTopBar(title = stringResource(R.string.home_title), compact = compact) },
         bottomBar = bottomBar,
     ) { padding ->
         PvotScreen(
             modifier = Modifier.fillMaxSize(),
+            state = listState,
             contentPadding = PvotScreenDefaults.contentPadding(top = padding.calculateTopPadding()),
         ) {
             when (state) {

@@ -7,6 +7,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -24,6 +25,7 @@ import com.prauga.pvot.designsystem.components.PvotScreenDefaults
 import com.prauga.pvot.designsystem.components.PvotScreenScaffold
 import com.prauga.pvot.designsystem.components.PvotSnackbarHost
 import com.prauga.pvot.designsystem.navigation.PvotTopBar
+import com.prauga.pvot.designsystem.navigation.rememberPvotTopBarCompact
 import org.prauga.files.R
 import org.prauga.files.common.CenteredContent
 import org.prauga.files.common.FileEntryRow
@@ -46,8 +48,16 @@ fun CategoryScreen(
     BackHandler(onBack = onBack)
     val snackbar = remember { SnackbarHostState() }
     val launcher = rememberFileLauncher(snackbar)
+    val listState = rememberLazyListState()
+    val compact = rememberPvotTopBarCompact(listState)
     PvotScreenScaffold(
-        topBar = { PvotTopBar(title = stringResource(category.labelRes), onBack = onBack) },
+        topBar = {
+            PvotTopBar(
+                title = stringResource(category.labelRes),
+                onBack = onBack,
+                compact = compact,
+            )
+        },
         bottomBar = bottomBar,
         snackbarHost = { PvotSnackbarHost(snackbar) },
     ) { padding ->
@@ -69,6 +79,7 @@ fun CategoryScreen(
                 } else {
                     PvotScreen(
                         modifier = Modifier.fillMaxSize(),
+                        state = listState,
                         contentPadding =
                             PvotScreenDefaults.contentPadding(top = padding.calculateTopPadding()),
                     ) {

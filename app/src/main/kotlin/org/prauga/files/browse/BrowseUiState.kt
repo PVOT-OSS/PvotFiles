@@ -8,6 +8,7 @@ import org.prauga.files.core.model.DisplayOptions
 import org.prauga.files.core.model.FileEntry
 
 data class BrowseUiState(
+    val path: String?,
     val folderName: String?,
     val canGoUp: Boolean,
     val options: DisplayOptions,

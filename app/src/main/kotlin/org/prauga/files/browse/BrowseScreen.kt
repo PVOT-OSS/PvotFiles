@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
@@ -35,12 +37,14 @@ import com.prauga.pvot.designsystem.components.PvotScreenScaffold
 import com.prauga.pvot.designsystem.components.PvotSnackbarHost
 import com.prauga.pvot.designsystem.navigation.PvotTopBar
 import com.prauga.pvot.designsystem.navigation.PvotTopBarAction
+import com.prauga.pvot.designsystem.navigation.rememberPvotTopBarCompact
 import com.prauga.pvot.designsystem.theme.PvotSpacing
 import org.prauga.files.R
 import org.prauga.files.common.CenteredContent
 import org.prauga.files.common.FileEntryRow
 import org.prauga.files.common.FileEntryTile
 import org.prauga.files.common.rememberFileLauncher
+import org.prauga.files.common.rememberGridTopBarCompact
 import org.prauga.files.core.model.FileEntry
 import org.prauga.files.core.model.ViewLayout
 
@@ -58,6 +62,15 @@ private fun BrowseContent(
     bottomBar: @Composable () -> Unit,
 ) {
     var optionsVisible by rememberSaveable { mutableStateOf(false) }
+    val listState = rememberSaveable(state.path, saver = LazyListState.Saver) { LazyListState() }
+    val gridState = rememberSaveable(state.path, saver = LazyGridState.Saver) { LazyGridState() }
+    val listCompact = rememberPvotTopBarCompact(listState)
+    val gridCompact = rememberGridTopBarCompact(gridState)
+    val compact =
+        when (state.options.layout) {
+            ViewLayout.List -> listCompact
+            ViewLayout.Grid -> gridCompact
+        }
     val snackbar = remember { SnackbarHostState() }
     val launcher = rememberFileLauncher(snackbar)
     val onClick: (FileEntry) -> Unit = { entry ->
@@ -71,6 +84,7 @@ private fun BrowseContent(
             PvotTopBar(
                 title = state.folderName ?: stringResource(R.string.browse_root_title),
                 onBack = if (state.canGoUp) ({ onEvent(BrowseEvent.Up) }) else null,
+                compact = compact,
             ) {
                 PvotTopBarAction(
                     icon = painterResource(R.drawable.ic_sort),
@@ -107,8 +121,8 @@ private fun BrowseContent(
                     }
                 } else {
                     when (state.options.layout) {
-                        ViewLayout.List -> EntryList(content.data, padding, onClick)
-                        ViewLayout.Grid -> EntryGrid(content.data, padding, onClick)
+                        ViewLayout.List -> EntryList(content.data, listState, padding, onClick)
+                        ViewLayout.Grid -> EntryGrid(content.data, gridState, padding, onClick)
                     }
                 }
         }
@@ -118,11 +132,13 @@ private fun BrowseContent(
 @Composable
 private fun EntryList(
     entries: List<FileEntry>,
+    state: LazyListState,
     padding: PaddingValues,
     onClick: (FileEntry) -> Unit,
 ) {
     PvotScreen(
         modifier = Modifier.fillMaxSize(),
+        state = state,
         contentPadding = PvotScreenDefaults.contentPadding(top = padding.calculateTopPadding()),
     ) {
         items(entries, key = { it.path }) { entry ->
@@ -134,12 +150,14 @@ private fun EntryList(
 @Composable
 private fun EntryGrid(
     entries: List<FileEntry>,
+    state: LazyGridState,
     padding: PaddingValues,
     onClick: (FileEntry) -> Unit,
 ) {
     LazyVerticalGrid(
         columns = GridCells.Adaptive(GridCellMinWidth),
         modifier = Modifier.fillMaxSize(),
+        state = state,
         contentPadding = PvotScreenDefaults.contentPadding(top = padding.calculateTopPadding()),
         verticalArrangement = Arrangement.spacedBy(PvotSpacing.S),
         horizontalArrangement = Arrangement.spacedBy(PvotSpacing.S),

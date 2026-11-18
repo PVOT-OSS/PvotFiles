@@ -102,6 +102,7 @@ constructor(
         content: UiState<List<FileEntry>>,
     ) =
         BrowseUiState(
+            path = current,
             folderName = if (current == null || current == root) null else File(current).name,
             canGoUp = current != null && current != root,
             options = options,
