@@ -10,4 +10,6 @@
     <color name="kind_presentation">#FFD84315</color>
     <color name="kind_web">#FFFB8C00</color>
     <color name="kind_text">#FF78909C</color>
+    <color name="shortcut_background">#FFE8DEFF</color>
+    <color name="shortcut_foreground">#FF4F378A</color>
 </resources>

@@ -3,12 +3,14 @@
 
 package org.prauga.files
 
+import android.os.Environment
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -35,22 +37,43 @@ import org.prauga.files.tags.TaggedScreen
 import org.prauga.files.trash.TrashScreen
 
 @Composable
-fun AppScaffold() {
+fun AppScaffold(launch: LaunchTarget? = null, onLaunchHandled: () -> Unit = {}) {
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background,
         contentColor = MaterialTheme.colorScheme.onBackground,
     ) {
-        Box(contentAlignment = Alignment.Center) { AccessScreen { AppTabs() } }
+        Box(contentAlignment = Alignment.Center) {
+            AccessScreen { AppTabs(launch, onLaunchHandled) }
+        }
     }
 }
 
 @Composable
-private fun AppTabs() {
+private fun AppTabs(launch: LaunchTarget?, onLaunchHandled: () -> Unit) {
     var tab by rememberSaveable { mutableStateOf(AppTab.Home) }
     val tabStates = rememberSaveableStateHolder()
     val navBar: @Composable () -> Unit = { AppNavBar(selected = tab, onSelect = { tab = it }) }
     var browseTarget by rememberSaveable { mutableStateOf<String?>(null) }
+    var safeRequested by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(launch) {
+        when (launch) {
+            LaunchTarget.Downloads -> {
+                browseTarget =
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                        .path
+                tab = AppTab.Browse
+            }
+            LaunchTarget.Clean -> tab = AppTab.Clean
+            LaunchTarget.Search -> tab = AppTab.Search
+            LaunchTarget.SafeFolder -> {
+                safeRequested = true
+                tab = AppTab.Home
+            }
+            null -> return@LaunchedEffect
+        }
+        onLaunchHandled()
+    }
     BackHandler(enabled = tab != AppTab.Home) { tab = AppTab.Home }
     tabStates.SaveableStateProvider(tab) {
         when (tab) {
@@ -61,6 +84,8 @@ private fun AppTabs() {
                         browseTarget = it
                         tab = AppTab.Browse
                     },
+                    safeRequested = safeRequested,
+                    onSafeOpened = { safeRequested = false },
                     bottomBar = navBar,
                 )
             AppTab.Clean -> CleanTab(bottomBar = navBar)
@@ -97,11 +122,19 @@ private fun CleanTab(bottomBar: @Composable () -> Unit) {
 private fun HomeTab(
     onOpenDevice: () -> Unit,
     onOpenFolder: (String) -> Unit,
+    safeRequested: Boolean,
+    onSafeOpened: () -> Unit,
     bottomBar: @Composable () -> Unit,
 ) {
     var category by rememberSaveable { mutableStateOf<FileCategory?>(null) }
     var trashOpen by rememberSaveable { mutableStateOf(false) }
     var safeOpen by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(safeRequested) {
+        if (safeRequested) {
+            safeOpen = true
+            onSafeOpened()
+        }
+    }
     var tagOpen by rememberSaveable { mutableStateOf<String?>(null) }
     var settingsOpen by rememberSaveable { mutableStateOf(false) }
     var aboutOpen by rememberSaveable { mutableStateOf(false) }
