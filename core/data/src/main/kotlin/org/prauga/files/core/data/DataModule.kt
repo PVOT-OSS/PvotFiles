@@ -83,4 +83,6 @@ internal abstract class DataModule {
 
     @Binds
     abstract fun safeFolderRepository(repository: LocalSafeFolderRepository): SafeFolderRepository
+
+    @Binds abstract fun incomingRepository(repository: LocalIncomingRepository): IncomingRepository
 }
