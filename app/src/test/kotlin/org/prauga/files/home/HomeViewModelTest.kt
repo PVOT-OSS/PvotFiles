@@ -63,6 +63,7 @@ class HomeViewModelTest {
                 storage = FakeStorageRepository(),
                 locations = FakeDocumentTreeRepository(),
                 repository = FakeStorageUsageRepository { usage },
+                dispatcher = UnconfinedTestDispatcher(),
             )
 
         viewModel.onEvent(HomeEvent.Refresh)
@@ -80,6 +81,7 @@ class HomeViewModelTest {
                 storage = FakeStorageRepository(),
                 locations = FakeDocumentTreeRepository(),
                 repository = FakeStorageUsageRepository { null },
+                dispatcher = UnconfinedTestDispatcher(),
             )
 
         viewModel.onEvent(HomeEvent.Refresh)
@@ -99,6 +101,7 @@ class HomeViewModelTest {
                 FakeTagsRepository(),
                 FakeStorageRepository(),
                 FakeDocumentTreeRepository(),
+                UnconfinedTestDispatcher(),
             )
         viewModel.onEvent(HomeEvent.Refresh)
 
@@ -121,6 +124,7 @@ class HomeViewModelTest {
                 tags = FakeTagsRepository(),
                 storage = FakeStorageRepository(),
                 locations = FakeDocumentTreeRepository(),
+                dispatcher = UnconfinedTestDispatcher(),
             )
 
         viewModel.onEvent(HomeEvent.Refresh)
@@ -171,6 +175,7 @@ class HomeViewModelTest {
                 tags = FakeTagsRepository(),
                 storage = FakeStorageRepository(),
                 locations = FakeDocumentTreeRepository(),
+                dispatcher = UnconfinedTestDispatcher(),
             )
 
         viewModel.onEvent(HomeEvent.Refresh)

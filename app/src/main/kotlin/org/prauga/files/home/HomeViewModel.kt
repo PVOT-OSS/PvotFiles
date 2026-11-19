@@ -7,16 +7,21 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.prauga.pvot.coreui.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.io.File
 import javax.inject.Inject
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.prauga.files.core.data.DocumentTreeRepository
 import org.prauga.files.core.data.FavouritesRepository
+import org.prauga.files.core.data.IoDispatcher
 import org.prauga.files.core.data.RecentFilesRepository
 import org.prauga.files.core.data.StorageRepository
 import org.prauga.files.core.data.StorageUsageRepository
@@ -37,17 +42,17 @@ constructor(
     tags: TagsRepository,
     private val storage: StorageRepository,
     private val locations: DocumentTreeRepository,
+    @IoDispatcher private val dispatcher: CoroutineDispatcher,
 ) : ViewModel() {
     private val mutableState = MutableStateFlow<UiState<StorageUsage>>(UiState.Loading)
     val state: StateFlow<UiState<StorageUsage>> = mutableState.asStateFlow()
     private val mutableRecent = MutableStateFlow<List<FileEntry.File>>(emptyList())
     val recent: StateFlow<List<FileEntry.File>> = mutableRecent.asStateFlow()
-    val favouriteFolders: StateFlow<List<String>> =
-        favourites.favourites.stateIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(5_000),
-            emptyList(),
-        )
+    val favouriteFolders: StateFlow<List<Favourite>> =
+        favourites.favourites
+            .map { paths -> paths.map { Favourite(it, File(it).isDirectory) } }
+            .flowOn(dispatcher)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
     val tags: StateFlow<List<Tag>> =
         tags.tags.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
     private val mutableVolumes = MutableStateFlow<List<Volume>>(emptyList())

@@ -267,6 +267,8 @@ private fun BrowseContent(
                 onCompress = { onEvent(BrowseEvent.Compress(listOf(it.path))) },
                 onExtract = { onEvent(BrowseEvent.Extract(it.path)) },
                 onMoveToSafe = { onEvent(BrowseEvent.MoveToSafe(listOf(it.path))) },
+                isFavourite = actionsEntry?.path in state.favourites,
+                onToggleFavourite = { onEvent(BrowseEvent.ToggleFavouriteOf(it.path)) },
             )
             InfoSheet(path = infoPath, onDismiss = { infoPath = null })
             TagPickerSheet(

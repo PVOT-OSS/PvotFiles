@@ -40,6 +40,7 @@ import com.prauga.pvot.designsystem.navigation.rememberPvotTopBarCompact
 import java.io.File
 import org.prauga.files.R
 import org.prauga.files.common.FileEntryRow
+import org.prauga.files.common.FileKindIcon
 import org.prauga.files.common.TagDot
 import org.prauga.files.common.rememberFileLauncher
 import org.prauga.files.core.model.FileCategory
@@ -103,7 +104,7 @@ fun HomeScreen(
 private fun HomeContent(
     state: UiState<StorageUsage>,
     recent: List<FileEntry.File>,
-    favourites: List<String>,
+    favourites: List<Favourite>,
     tags: List<Tag>,
     volumes: List<Volume>,
     locations: List<SavedLocation>,
@@ -188,16 +189,34 @@ private fun HomeContent(
                         modifier = Modifier.fillMaxWidth(),
                         title = stringResource(R.string.home_favourites),
                     ) {
-                        favourites.forEach { path ->
+                        favourites.forEach { favourite ->
                             item {
                                 PvotPreferenceRow(
-                                    title = File(path).name,
-                                    onClick = { onOpenFolder(path) },
+                                    title = File(favourite.path).name,
+                                    onClick = {
+                                        if (favourite.isDirectory) {
+                                            onOpenFolder(favourite.path)
+                                        } else {
+                                            val file = File(favourite.path)
+                                            launcher.open(
+                                                FileEntry.File(
+                                                    file.path,
+                                                    file.name,
+                                                    0L,
+                                                    sizeBytes = 0L,
+                                                )
+                                            )
+                                        }
+                                    },
                                     icon = {
-                                        Icon(
-                                            painterResource(R.drawable.ic_folder),
-                                            contentDescription = null,
-                                        )
+                                        if (favourite.isDirectory) {
+                                            Icon(
+                                                painterResource(R.drawable.ic_folder),
+                                                contentDescription = null,
+                                            )
+                                        } else {
+                                            FileKindIcon(favourite.path)
+                                        }
                                     },
                                     iconStyle = PvotRowIconStyle.Plain,
                                     chevron = PvotRowChevron.Arrow,

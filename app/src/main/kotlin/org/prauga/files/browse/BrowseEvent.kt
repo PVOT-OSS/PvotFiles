@@ -46,6 +46,8 @@ sealed interface BrowseEvent {
 
     data class Extract(val path: String) : BrowseEvent
 
+    data class ToggleFavouriteOf(val path: String) : BrowseEvent
+
     data class MoveToSafe(val paths: List<String>) : BrowseEvent
 
     data object MoveSelectionToSafe : BrowseEvent

@@ -30,6 +30,8 @@ fun FileActionsSheet(
     onCompress: ((FileEntry) -> Unit)? = null,
     onExtract: ((FileEntry) -> Unit)? = null,
     onMoveToSafe: ((FileEntry) -> Unit)? = null,
+    isFavourite: Boolean = false,
+    onToggleFavourite: ((FileEntry) -> Unit)? = null,
 ) {
     var shown by remember { mutableStateOf(entry) }
     if (entry != null) shown = entry
@@ -71,6 +73,15 @@ fun FileActionsSheet(
             Action(R.string.action_extract, R.drawable.ic_unarchive) {
                 onDismiss()
                 onExtract(target)
+            }
+        }
+        if (target != null && onToggleFavourite != null) {
+            Action(
+                if (isFavourite) R.string.favourite_remove else R.string.favourite_add,
+                if (isFavourite) R.drawable.ic_star else R.drawable.ic_star_border,
+            ) {
+                onDismiss()
+                onToggleFavourite(target)
             }
         }
         if (target is FileEntry.File && onMoveToSafe != null) {

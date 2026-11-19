@@ -99,7 +99,7 @@ constructor(
             .combine(clipboard) { state, clipboard -> state.copy(clipboard = clipboard) }
             .combine(transferring) { state, running -> state.copy(transferring = running) }
             .combine(favourites.favourites) { state, saved ->
-                state.copy(favourite = state.path in saved)
+                state.copy(favourite = state.path in saved, favourites = saved.toSet())
             }
             .combine(selection) { state, selected -> state.copy(selection = selected.toSet()) }
             .stateIn(
@@ -179,6 +179,10 @@ constructor(
             }
             is BrowseEvent.Extract -> perform { archives.extract(event.path) }
             is BrowseEvent.MoveToSafe -> moveToSafe(event.paths)
+            is BrowseEvent.ToggleFavouriteOf -> {
+                val starred = event.path in state.value.favourites
+                viewModelScope.launch { favourites.setFavourite(event.path, !starred) }
+            }
             BrowseEvent.MoveSelectionToSafe -> {
                 val targets = selection.value
                 select(emptyList())
