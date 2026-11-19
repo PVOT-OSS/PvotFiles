@@ -262,6 +262,8 @@
     <string name="operation_exists">Something with this name is already here</string>
     <string name="operation_failed">That didn\'t work. Check the storage and try again.</string>
     <string name="file_entry_in_folder">%1$s\n%2$s</string>
+    <string name="rename_extension_title">Change the file type?</string>
+    <string name="rename_extension_message">The extension changes from %1$s to %2$s. The file may not open as it did.</string>
     <string name="more_actions">More actions</string>
     <string name="entry_selected">Selected</string>
     <string name="select_all">Select all</string>

@@ -41,6 +41,8 @@ import com.prauga.pvot.coreui.PvotEmptyContent
 import com.prauga.pvot.coreui.PvotErrorContent
 import com.prauga.pvot.coreui.PvotLoadingContent
 import com.prauga.pvot.coreui.UiState
+import com.prauga.pvot.designsystem.components.PvotDialog
+import com.prauga.pvot.designsystem.components.PvotDialogAction
 import com.prauga.pvot.designsystem.components.PvotScreen
 import com.prauga.pvot.designsystem.components.PvotScreenDefaults
 import com.prauga.pvot.designsystem.components.PvotScreenScaffold
@@ -166,6 +168,7 @@ private fun BrowseContent(
     var renamePath by rememberSaveable { mutableStateOf<String?>(null) }
     var tagsPath by rememberSaveable { mutableStateOf<String?>(null) }
     var infoPath by rememberSaveable { mutableStateOf<String?>(null) }
+    var pendingRename by rememberSaveable { mutableStateOf<List<String>?>(null) }
     val actionsEntry = entries.firstOrNull { it.path == actionsPath }
     val renameEntry = entries.firstOrNull { it.path == renamePath }
     val selecting = state.selection.isNotEmpty()
@@ -302,11 +305,39 @@ private fun BrowseContent(
                 confirmLabel = stringResource(R.string.action_rename),
                 initialName = renameEntry?.name.orEmpty(),
                 onConfirm = { name ->
-                    renameEntry?.let { onEvent(BrowseEvent.Rename(it.path, name)) }
+                    renameEntry?.let { entry ->
+                        if (
+                            entry is FileEntry.File && extensionOf(entry.name) != extensionOf(name)
+                        ) {
+                            pendingRename = listOf(entry.path, name)
+                        } else {
+                            onEvent(BrowseEvent.Rename(entry.path, name))
+                        }
+                    }
                     renamePath = null
                 },
                 onDismiss = { renamePath = null },
             )
+            val pending = pendingRename
+            PvotDialog(
+                visible = pending != null,
+                onDismissRequest = { pendingRename = null },
+                title = stringResource(R.string.rename_extension_title),
+                message =
+                    stringResource(
+                        R.string.rename_extension_message,
+                        pending?.let { extensionOf(File(it[0]).name) }.orEmpty().ifEmpty { "—" },
+                        pending?.let { extensionOf(it[1]) }.orEmpty().ifEmpty { "—" },
+                    ),
+            ) {
+                PvotDialogAction(
+                    label = stringResource(R.string.action_rename),
+                    onClick = {
+                        pending?.let { onEvent(BrowseEvent.Rename(it[0], it[1])) }
+                        pendingRename = null
+                    },
+                )
+            }
             NameDialog(
                 visible = newFolderVisible,
                 title = stringResource(R.string.new_folder),
@@ -452,3 +483,5 @@ private fun SelectionTopBar(
         )
     }
 }
+
+private fun extensionOf(name: String): String = name.substringAfterLast('.', "").lowercase()
