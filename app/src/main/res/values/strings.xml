@@ -68,6 +68,8 @@
     <string name="viewer_error_title">Couldn\'t open this file</string>
     <string name="viewer_error_message">It may be damaged, or Files can\'t show this kind of file. Try Open with.</string>
     <string name="viewer_text_truncated">Showing the first 256 KB of this file.</string>
+    <string name="action_play">Play</string>
+    <string name="action_pause">Pause</string>
     <string name="viewer_page">Page %1$d of %2$d</string>
     <string name="action_compress">Compress to ZIP</string>
     <string name="action_extract">Extract here</string>

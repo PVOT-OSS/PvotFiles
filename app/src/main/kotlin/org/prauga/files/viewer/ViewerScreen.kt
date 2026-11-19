@@ -79,6 +79,7 @@ fun ViewerScreen(onClose: () -> Unit, viewModel: ViewerViewModel = hiltViewModel
             is ViewerContent.Images -> content.paths.getOrNull(pager.currentPage)
             is ViewerContent.Text -> content.path
             is ViewerContent.Pdf -> content.path
+            is ViewerContent.Media -> content.path
             null -> null
         }
     PvotScreenScaffold(
@@ -124,6 +125,7 @@ fun ViewerScreen(onClose: () -> Unit, viewModel: ViewerViewModel = hiltViewModel
                     }
                     is ViewerContent.Text -> TextContent(data, padding)
                     is ViewerContent.Pdf -> PdfContent(data, padding, viewModel::page)
+                    is ViewerContent.Media -> MediaContent(data, padding)
                 }
         }
     }

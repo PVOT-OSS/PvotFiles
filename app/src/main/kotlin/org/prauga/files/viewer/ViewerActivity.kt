@@ -21,7 +21,8 @@ class ViewerActivity : PvotBaseActivity() {
     companion object {
         const val EXTRA_PATH = "path"
 
-        private val supported = setOf(FileKind.Image, FileKind.Pdf, FileKind.Text)
+        private val supported =
+            setOf(FileKind.Image, FileKind.Pdf, FileKind.Text, FileKind.Video, FileKind.Audio)
 
         fun canView(name: String): Boolean = FileKind.of(name) in supported
 

@@ -63,6 +63,8 @@ constructor(savedStateHandle: SavedStateHandle, private val previews: PreviewRep
                         pdf = pages
                         ViewerContent.Pdf(path, List(pages.pageCount, pages::aspectRatio))
                     }
+                FileKind.Video -> ViewerContent.Media(path, video = true)
+                FileKind.Audio -> ViewerContent.Media(path, video = false)
                 else -> previews.text(path)?.let { ViewerContent.Text(path, it) }
             }
         return content?.let { UiState.Success(it) } ?: UiState.Error(message = "")

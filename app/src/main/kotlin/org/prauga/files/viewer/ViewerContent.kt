@@ -11,4 +11,6 @@ sealed interface ViewerContent {
     data class Text(val path: String, val preview: TextPreview) : ViewerContent
 
     data class Pdf(val path: String, val aspectRatios: List<Float>) : ViewerContent
+
+    data class Media(val path: String, val video: Boolean) : ViewerContent
 }
