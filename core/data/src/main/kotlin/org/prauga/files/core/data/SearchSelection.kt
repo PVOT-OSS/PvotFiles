@@ -9,7 +9,19 @@ import org.prauga.files.core.model.SearchFilters
 internal object SearchSelection {
     private const val SECONDS_PER_DAY = 24L * 60 * 60
 
-    fun of(query: String, filters: SearchFilters, nowSeconds: Long): CategorySelection {
+    data class Scope(val volumeName: String, val relativePath: String)
+
+    fun scopeOf(folder: String, volumeRoot: String, volumeName: String): Scope {
+        val relative = folder.removePrefix(volumeRoot).trim('/')
+        return Scope(volumeName, if (relative.isEmpty()) "" else "$relative/")
+    }
+
+    fun of(
+        query: String,
+        filters: SearchFilters,
+        nowSeconds: Long,
+        scope: Scope? = null,
+    ): CategorySelection {
         val clauses = mutableListOf<String>()
         val arguments = mutableListOf<String>()
         val category = filters.category
@@ -23,6 +35,12 @@ internal object SearchSelection {
         if (query.isNotBlank()) {
             clauses += "${FileColumns.DISPLAY_NAME} LIKE ? ESCAPE '${NameQuery.ESCAPE}'"
             arguments += NameQuery.likePattern(query)
+        }
+        if (scope != null) {
+            clauses += "${FileColumns.VOLUME_NAME} = ?"
+            arguments += scope.volumeName
+            clauses += "${FileColumns.RELATIVE_PATH} LIKE ? ESCAPE '${NameQuery.ESCAPE}'"
+            arguments += NameQuery.prefixPattern(scope.relativePath)
         }
         filters.modified.days?.let { days ->
             clauses += "${FileColumns.DATE_MODIFIED} >= ?"

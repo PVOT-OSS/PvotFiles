@@ -19,6 +19,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -56,8 +57,19 @@ import org.prauga.files.selection.BatchTopBar
 import org.prauga.files.selection.rememberBatchSelection
 
 @Composable
-fun SearchScreen(bottomBar: @Composable () -> Unit, viewModel: SearchViewModel = hiltViewModel()) {
+fun SearchScreen(
+    bottomBar: @Composable () -> Unit,
+    folder: String? = null,
+    onFolderHandled: () -> Unit = {},
+    viewModel: SearchViewModel = hiltViewModel(),
+) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    LaunchedEffect(folder) {
+        if (folder != null) {
+            viewModel.onEvent(SearchEvent.FolderChanged(folder))
+            onFolderHandled()
+        }
+    }
     SearchContent(state, viewModel::onEvent, bottomBar)
 }
 

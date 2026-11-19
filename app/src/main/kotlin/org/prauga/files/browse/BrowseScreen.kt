@@ -73,6 +73,7 @@ fun BrowseScreen(
     bottomBar: @Composable () -> Unit,
     openPath: String? = null,
     onOpened: () -> Unit = {},
+    onSearchIn: (String) -> Unit = {},
     viewModel: BrowseViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -86,7 +87,7 @@ fun BrowseScreen(
             onOpened()
         }
     }
-    BrowseContent(state, viewModel.effects, viewModel::onEvent, bottomBar)
+    BrowseContent(state, viewModel.effects, viewModel::onEvent, bottomBar, onSearchIn)
 }
 
 @Composable
@@ -95,6 +96,7 @@ private fun BrowseContent(
     effects: Flow<BrowseEffect>,
     onEvent: (BrowseEvent) -> Unit,
     bottomBar: @Composable () -> Unit,
+    onSearchIn: (String) -> Unit,
 ) {
     var optionsVisible by rememberSaveable { mutableStateOf(false) }
     val listState = rememberSaveable(state.path, saver = LazyListState.Saver) { LazyListState() }
@@ -220,6 +222,11 @@ private fun BrowseContent(
                                     else R.string.favourite_add
                                 ),
                             onClick = { onEvent(BrowseEvent.ToggleFavourite) },
+                        )
+                        PvotTopBarAction(
+                            icon = painterResource(R.drawable.ic_search),
+                            contentDescription = stringResource(R.string.search_this_folder),
+                            onClick = { state.path?.let(onSearchIn) },
                         )
                         PvotTopBarAction(
                             icon = painterResource(R.drawable.ic_new_folder),

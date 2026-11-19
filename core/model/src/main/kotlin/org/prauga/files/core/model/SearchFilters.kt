@@ -7,6 +7,7 @@ data class SearchFilters(
     val category: FileCategory? = null,
     val modified: ModifiedWithin = ModifiedWithin.Any,
     val size: SizeRange = SizeRange.Any,
+    val folder: String? = null,
 ) {
     val isDefault: Boolean
         get() = this == SearchFilters()

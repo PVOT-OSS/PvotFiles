@@ -60,6 +60,7 @@ private fun AppTabs(launch: LaunchTarget?, launchFolder: String?, onLaunchHandle
     val navBar: @Composable () -> Unit = { AppNavBar(selected = tab, onSelect = { tab = it }) }
     var browseTarget by rememberSaveable { mutableStateOf<String?>(null) }
     var safeRequested by rememberSaveable { mutableStateOf(false) }
+    var searchFolder by rememberSaveable { mutableStateOf<String?>(null) }
     LaunchedEffect(launch) {
         when (launch) {
             LaunchTarget.Downloads -> {
@@ -97,12 +98,21 @@ private fun AppTabs(launch: LaunchTarget?, launchFolder: String?, onLaunchHandle
                     bottomBar = navBar,
                 )
             AppTab.Clean -> CleanTab(bottomBar = navBar)
-            AppTab.Search -> SearchScreen(bottomBar = navBar)
+            AppTab.Search ->
+                SearchScreen(
+                    bottomBar = navBar,
+                    folder = searchFolder,
+                    onFolderHandled = { searchFolder = null },
+                )
             AppTab.Browse ->
                 BrowseScreen(
                     bottomBar = navBar,
                     openPath = browseTarget,
                     onOpened = { browseTarget = null },
+                    onSearchIn = {
+                        searchFolder = it
+                        tab = AppTab.Search
+                    },
                 )
         }
     }

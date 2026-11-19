@@ -6,6 +6,14 @@ package org.prauga.files.core.data
 internal object NameQuery {
     const val ESCAPE = '\\'
 
+    fun prefixPattern(prefix: String): String = buildString {
+        prefix.forEach { char ->
+            if (char == '%' || char == '_' || char == ESCAPE) append(ESCAPE)
+            append(char)
+        }
+        append('%')
+    }
+
     fun likePattern(query: String): String = buildString {
         append('%')
         query.trim().forEach { char ->

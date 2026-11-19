@@ -43,10 +43,11 @@ constructor(
     private val category = savedStateHandle.getStateFlow<String?>(KEY_CATEGORY, null)
     private val modified = savedStateHandle.getStateFlow(KEY_MODIFIED, ModifiedWithin.Any.name)
     private val size = savedStateHandle.getStateFlow(KEY_SIZE, SizeRange.Any.name)
+    private val folder = savedStateHandle.getStateFlow<String?>(KEY_FOLDER, null)
     private val attempt = MutableStateFlow(0)
 
     private val filters =
-        combine(category, modified, size) { category, modified, size ->
+        combine(category, modified, size, folder) { category, modified, size, folder ->
             SearchFilters(
                 category =
                     category?.let { name -> FileCategory.entries.firstOrNull { it.name == name } },
@@ -54,6 +55,7 @@ constructor(
                     ModifiedWithin.entries.firstOrNull { it.name == modified }
                         ?: ModifiedWithin.Any,
                 size = SizeRange.entries.firstOrNull { it.name == size } ?: SizeRange.Any,
+                folder = folder,
             )
         }
 
@@ -109,6 +111,7 @@ constructor(
                 viewModelScope.launch { history.add(event.query) }
             }
             SearchEvent.ClearHistory -> viewModelScope.launch { history.clear() }
+            is SearchEvent.FolderChanged -> savedStateHandle[KEY_FOLDER] = event.folder
         }
     }
 
@@ -117,6 +120,7 @@ constructor(
         const val KEY_CATEGORY = "search_category"
         const val KEY_MODIFIED = "search_modified"
         const val KEY_SIZE = "search_size"
+        const val KEY_FOLDER = "search_folder"
         const val DEBOUNCE_MILLIS = 300L
     }
 }

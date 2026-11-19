@@ -46,4 +46,32 @@ class SearchSelectionTest {
             selection.arguments.toList(),
         )
     }
+
+    @Test
+    fun aFolderScopeLimitsToItsVolumeAndPath() {
+        val scope =
+            SearchSelection.scopeOf(
+                "/storage/emulated/0/Download/50%_off",
+                "/storage/emulated/0",
+                "external_primary",
+            )
+        val selection = SearchSelection.of("", SearchFilters(), nowSeconds = 0, scope)
+
+        assertEquals(
+            "mime_type IS NOT NULL AND volume_name = ? AND relative_path LIKE ? ESCAPE '\\'",
+            selection.selection,
+        )
+        assertEquals(
+            listOf("external_primary", "Download/50\\%\\_off/%"),
+            selection.arguments.toList(),
+        )
+    }
+
+    @Test
+    fun theVolumeRootScopesTheWholeVolume() {
+        assertEquals(
+            SearchSelection.Scope("6200-0a16", ""),
+            SearchSelection.scopeOf("/storage/6200-0A16", "/storage/6200-0A16", "6200-0a16"),
+        )
+    }
 }

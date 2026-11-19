@@ -25,4 +25,6 @@ sealed interface SearchEvent {
     data class HistoryPicked(val query: String) : SearchEvent
 
     data object ClearHistory : SearchEvent
+
+    data class FolderChanged(val folder: String?) : SearchEvent
 }

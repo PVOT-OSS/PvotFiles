@@ -111,6 +111,19 @@ class SearchViewModelTest {
     }
 
     @Test
+    fun aFolderScopeAloneSearchesThatFolder() = runTest {
+        val repository = FakeSearchRepository(mapOf("" to listOf(report)))
+        val viewModel = viewModel(repository)
+        collect(viewModel)
+
+        viewModel.onEvent(SearchEvent.FolderChanged("/storage/Download"))
+        advanceTimeBy(500)
+
+        assertEquals(SearchFilters(folder = "/storage/Download"), repository.filters.last())
+        assertEquals(UiState.Success(listOf(report)), viewModel.state.value.results)
+    }
+
+    @Test
     fun openingAResultRemembersTheQuery() = runTest {
         val viewModel = viewModel(FakeSearchRepository())
         collect(viewModel)

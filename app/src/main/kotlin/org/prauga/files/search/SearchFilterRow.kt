@@ -28,6 +28,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.prauga.pvot.designsystem.components.PvotSheetItem
 import com.prauga.pvot.designsystem.theme.PvotSpacing
+import java.io.File
 import org.prauga.files.R
 import org.prauga.files.common.FilesBottomSheet
 import org.prauga.files.common.labelRes
@@ -51,6 +52,32 @@ fun SearchFilterRow(filters: SearchFilters, onEvent: (SearchEvent) -> Unit) {
             .padding(horizontal = PvotSpacing.L),
         horizontalArrangement = Arrangement.spacedBy(PvotSpacing.S),
     ) {
+        filters.folder?.let { folder ->
+            FilterChip(
+                selected = true,
+                onClick = { onEvent(SearchEvent.FolderChanged(null)) },
+                label = {
+                    Text(
+                        stringResource(
+                            R.string.search_in_folder,
+                            File(folder).name.ifEmpty { folder },
+                        )
+                    )
+                },
+                trailingIcon = {
+                    Icon(
+                        painterResource(R.drawable.ic_clear),
+                        contentDescription = stringResource(R.string.search_clear_folder),
+                    )
+                },
+                colors =
+                    FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        selectedTrailingIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    ),
+            )
+        }
         Chip(
             filters.category?.let { stringResource(it.labelRes) }
                 ?: stringResource(R.string.search_filter_type),

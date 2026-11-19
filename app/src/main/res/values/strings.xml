@@ -24,6 +24,9 @@
     <string name="search_size_small">Under 1 MB</string>
     <string name="search_size_medium">1–100 MB</string>
     <string name="search_size_large">Over 100 MB</string>
+    <string name="search_in_folder">In %1$s</string>
+    <string name="search_clear_folder">Search everywhere</string>
+    <string name="search_this_folder">Search in this folder</string>
     <string name="search_recent">Recent searches</string>
     <string name="search_clear_history">Clear recent searches</string>
     <string name="search_hint">Type part of a file name</string>
