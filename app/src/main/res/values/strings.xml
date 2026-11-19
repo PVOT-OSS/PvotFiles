@@ -77,6 +77,7 @@
     <string name="action_rename">Rename</string>
     <string name="action_tags">Tags</string>
     <string name="action_info">Info</string>
+    <string name="tile_label">Free up space</string>
     <string name="save_label">Save to Downloads</string>
     <string name="save_failed">Couldn\'t save that here.</string>
     <plurals name="save_done">
