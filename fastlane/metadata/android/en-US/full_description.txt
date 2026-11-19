@@ -1,14 +1,18 @@
 Files shows what is on your phone's storage and helps you keep it tidy.
 
-• See how much space you use and how much goes to photos, videos, audio and other files
-• Browse every folder as a list or a grid, sorted by name, date, size or type
-• Open files with your other apps, or share them
-• Create folders, rename, copy and move — big copies keep going in the background
-• Deleted items wait 30 days in Recently deleted, so you can restore them
-• Find files by name, mark favourite folders and group files with your own tags
-• Previews for photos and videos
+• See how much space you use, split into photos, videos, audio, documents, apps and other files
+• Browse every folder, SD card and USB drive as a list or a grid, and folders other apps share
+• Select several files at once to share, delete, copy, move, tag or compress them
+• View photos, PDFs and text, and play videos and music, right in the app
+• Compress files to ZIP and extract archives, with a look inside first
+• Clean up: large files, duplicates, old screenshots, old downloads, empty folders and unused apps
+• Search by name with filters for type, date and size, or inside one folder
+• Keep private files in a Safe folder, encrypted and locked with a PIN
+• Deleted items wait 30 days in Recently deleted, with Undo
+• See details for any file, like size, dimensions and where a photo was taken
+• Favourites, coloured tags, light and dark themes
 
 Files has no internet permission, no accounts, no ads and no analytics. Everything it keeps — your
-view settings, favourites and tags — stays on your phone.
+settings, favourites, tags and Safe folder — stays on your phone.
 
 Files is part of PVOT-OSS and is free software under the Apache License 2.0.
