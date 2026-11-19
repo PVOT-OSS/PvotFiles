@@ -7,7 +7,6 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.compose.runtime.mutableStateOf
 import com.prauga.pvot.designsystem.platform.PvotBaseActivity
-import com.prauga.pvot.designsystem.theme.PvotAppTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -19,7 +18,7 @@ class MainActivity : PvotBaseActivity() {
         if (savedInstanceState == null) open(intent)
         LaunchShortcuts.publish(this)
         setPvotContent {
-            PvotAppTheme {
+            FilesTheme {
                 AppScaffold(launch = launch.value, onLaunchHandled = { launch.value = null })
             }
         }

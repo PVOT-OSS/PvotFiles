@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.prauga.files.core.data.DisplayOptionsRepository
 import org.prauga.files.core.model.DisplayOptions
+import org.prauga.files.core.model.ThemeMode
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(private val options: DisplayOptionsRepository) :
@@ -23,6 +24,14 @@ class SettingsViewModel @Inject constructor(private val options: DisplayOptionsR
             SharingStarted.WhileSubscribed(5_000),
             DisplayOptions(),
         )
+
+    fun setThemeMode(mode: ThemeMode) {
+        viewModelScope.launch { options.update { it.copy(themeMode = mode) } }
+    }
+
+    fun setDynamicColor(enabled: Boolean) {
+        viewModelScope.launch { options.update { it.copy(dynamicColor = enabled) } }
+    }
 
     fun setShowHidden(show: Boolean) {
         viewModelScope.launch { options.update { it.copy(showHidden = show) } }

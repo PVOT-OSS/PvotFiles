@@ -27,18 +27,20 @@ import com.prauga.pvot.designsystem.components.button.PvotButton
 import com.prauga.pvot.designsystem.components.button.PvotButtonStyle
 import com.prauga.pvot.designsystem.navigation.PvotTopBar
 import com.prauga.pvot.designsystem.platform.PvotBaseActivity
-import com.prauga.pvot.designsystem.theme.PvotAppTheme
 import com.prauga.pvot.designsystem.theme.PvotSpacing
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.prauga.files.FilesTheme
 import org.prauga.files.R
 
+@AndroidEntryPoint
 class ManageSpaceActivity : PvotBaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setPvotContent {
-            PvotAppTheme {
+            FilesTheme {
                 ManageSpace(onBack = ::finish, onClearCache = ::clearCache, onClearAll = ::clearAll)
             }
         }

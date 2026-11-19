@@ -8,8 +8,8 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import com.prauga.pvot.designsystem.platform.PvotBaseActivity
-import com.prauga.pvot.designsystem.theme.PvotAppTheme
 import dagger.hilt.android.AndroidEntryPoint
+import org.prauga.files.FilesTheme
 import org.prauga.files.core.model.FileKind
 
 @AndroidEntryPoint
@@ -20,7 +20,7 @@ class ViewerActivity : PvotBaseActivity() {
             intent.putExtra(EXTRA_URI, data.toString())
         }
         super.onCreate(savedInstanceState)
-        setPvotContent { PvotAppTheme { ViewerScreen(onClose = ::finish) } }
+        setPvotContent { FilesTheme { ViewerScreen(onClose = ::finish) } }
     }
 
     companion object {

@@ -77,6 +77,12 @@
     <string name="action_rename">Rename</string>
     <string name="action_tags">Tags</string>
     <string name="action_info">Info</string>
+    <string name="settings_appearance">Appearance</string>
+    <string name="settings_theme_system">System</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_dark">Dark</string>
+    <string name="settings_dynamic_color">Dynamic colour</string>
+    <string name="settings_dynamic_color_summary">Use colours from your wallpaper</string>
     <string name="space_title">Manage space</string>
     <string name="space_message">Files keeps thumbnails and temporary copies in its cache; clearing them is always safe. Clearing all app data also deletes your settings, tags, search history and everything in Safe folder, which can\'t be recovered.</string>
     <string name="space_clear_cache">Clear cache</string>

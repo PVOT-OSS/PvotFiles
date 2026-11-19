@@ -25,6 +25,8 @@ constructor(private val store: DataStore<Preferences>) : DisplayOptionsRepositor
             preferences[SORT_ORDER] = updated.sortOrder.name
             preferences[LAYOUT] = updated.layout.name
             preferences[SHOW_HIDDEN] = updated.showHidden
+            preferences[THEME_MODE] = updated.themeMode.name
+            preferences[DYNAMIC_COLOR] = updated.dynamicColor
         }
     }
 
@@ -34,6 +36,8 @@ constructor(private val store: DataStore<Preferences>) : DisplayOptionsRepositor
             sortOrder = enumOrDefault(this[SORT_ORDER], defaults.sortOrder),
             layout = enumOrDefault(this[LAYOUT], defaults.layout),
             showHidden = this[SHOW_HIDDEN] ?: defaults.showHidden,
+            themeMode = enumOrDefault(this[THEME_MODE], defaults.themeMode),
+            dynamicColor = this[DYNAMIC_COLOR] ?: defaults.dynamicColor,
         )
     }
 
@@ -44,5 +48,7 @@ constructor(private val store: DataStore<Preferences>) : DisplayOptionsRepositor
         val SORT_ORDER = stringPreferencesKey("sort_order")
         val LAYOUT = stringPreferencesKey("layout")
         val SHOW_HIDDEN = booleanPreferencesKey("show_hidden")
+        val THEME_MODE = stringPreferencesKey("theme_mode")
+        val DYNAMIC_COLOR = booleanPreferencesKey("dynamic_color")
     }
 }

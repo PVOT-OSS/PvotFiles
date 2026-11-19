@@ -7,4 +7,6 @@ data class DisplayOptions(
     val sortOrder: SortOrder = SortOrder.Name,
     val layout: ViewLayout = ViewLayout.List,
     val showHidden: Boolean = false,
+    val themeMode: ThemeMode = ThemeMode.System,
+    val dynamicColor: Boolean = false,
 )
