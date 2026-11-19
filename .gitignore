@@ -13,7 +13,3 @@ build/
 captures/
 local.properties
 gradle/gradle-daemon-jvm.properties
-.scratch/
-keystore.properties
-*.jks
-*.keystore
