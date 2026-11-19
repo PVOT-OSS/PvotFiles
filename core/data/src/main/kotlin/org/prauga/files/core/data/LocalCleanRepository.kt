@@ -7,13 +7,16 @@ import android.provider.MediaStore.Files.FileColumns
 import java.io.File
 import java.time.Clock
 import java.time.Duration
+import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import org.prauga.files.core.model.CleanCategory
 import org.prauga.files.core.model.CleanSummary
 import org.prauga.files.core.model.FileEntry
 
+@Singleton
 internal class LocalCleanRepository
 @Inject
 constructor(
@@ -44,7 +47,7 @@ constructor(
                     ?.let(::single)
             CleanCategory.Duplicates ->
                 files.newestFirst("${FileColumns.SIZE} > ?", arrayOf("0"))?.let {
-                    DuplicateFinder.groups(it, DuplicateFinder::sha256)
+                    DuplicateFinder.groups(it, ::cachedHash)
                 }
             CleanCategory.OldScreenshots -> olderThan("%/Screenshots/%")?.let(::single)
             CleanCategory.OldDownloads -> olderThan("Download/%")?.let(::single)
@@ -57,6 +60,15 @@ constructor(
                     )
                 }
         }
+
+    private val hashes = ConcurrentHashMap<String, Pair<String, String>>()
+
+    private fun cachedHash(path: String): String? {
+        val file = File(path)
+        val stamp = "${file.length()}:${file.lastModified()}"
+        hashes[path]?.let { (cachedStamp, hash) -> if (cachedStamp == stamp) return hash }
+        return DuplicateFinder.sha256(path)?.also { hashes[path] = stamp to it }
+    }
 
     private fun olderThan(relativePath: String): List<FileEntry.File>? {
         val cutoff = clock.instant().minus(OLD_AFTER).epochSecond
