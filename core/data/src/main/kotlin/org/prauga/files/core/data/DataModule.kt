@@ -65,4 +65,6 @@ internal abstract class DataModule {
     ): DocumentTreeRepository
 
     @Binds abstract fun fileInfoRepository(repository: LocalFileInfoRepository): FileInfoRepository
+
+    @Binds abstract fun archiveRepository(repository: LocalArchiveRepository): ArchiveRepository
 }
