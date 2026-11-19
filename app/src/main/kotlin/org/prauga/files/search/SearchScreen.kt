@@ -3,6 +3,7 @@
 
 package org.prauga.files.search
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
@@ -50,6 +51,9 @@ import org.prauga.files.common.FileEntryRow
 import org.prauga.files.common.rememberFileLauncher
 import org.prauga.files.core.model.FileEntry
 import org.prauga.files.info.EntryActionsSheets
+import org.prauga.files.selection.BatchOverlay
+import org.prauga.files.selection.BatchTopBar
+import org.prauga.files.selection.rememberBatchSelection
 
 @Composable
 fun SearchScreen(bottomBar: @Composable () -> Unit, viewModel: SearchViewModel = hiltViewModel()) {
@@ -70,12 +74,16 @@ private fun SearchContent(
     var actionsPath by rememberSaveable { mutableStateOf<String?>(null) }
     val listState = rememberLazyListState()
     val typing = WindowInsets.isImeVisible
+    val batch = rememberBatchSelection(results, launcher, snackbar) { onEvent(SearchEvent.Retry) }
+    BackHandler(enabled = batch.active) { batch.clear() }
     PvotScreenScaffold(
         topBar = {
-            PvotTopBar(
-                title = stringResource(R.string.search_title),
-                compact = rememberPvotTopBarCompact(listState),
-            )
+            val compact = rememberPvotTopBarCompact(listState)
+            if (batch.active) {
+                BatchTopBar(batch, compact)
+            } else {
+                PvotTopBar(title = stringResource(R.string.search_title), compact = compact)
+            }
         },
         bottomBar = {
             Column(Modifier.imePadding()) {
@@ -91,6 +99,7 @@ private fun SearchContent(
                 launcher,
                 onDismiss = { actionsPath = null },
             )
+            BatchOverlay(batch)
         },
     ) { padding ->
         when (val found = state.results) {
@@ -130,12 +139,17 @@ private fun SearchContent(
                             FileEntryRow(
                                 file,
                                 onClick = {
-                                    onEvent(SearchEvent.ResultOpened)
-                                    launcher.open(file)
+                                    if (batch.active) {
+                                        batch.toggle(file.path)
+                                    } else {
+                                        onEvent(SearchEvent.ResultOpened)
+                                        launcher.open(file)
+                                    }
                                 },
-                                onLongClick = { actionsPath = it.path },
+                                onLongClick = { batch.toggle(it.path) },
                                 modifier = Modifier.fillMaxWidth(),
-                                onMore = { actionsPath = it.path },
+                                selected = file.path in batch.selected,
+                                onMore = if (batch.active) null else ({ actionsPath = it.path }),
                             )
                         }
                     }

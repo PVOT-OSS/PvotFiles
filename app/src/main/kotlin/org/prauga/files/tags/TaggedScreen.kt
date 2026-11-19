@@ -40,6 +40,9 @@ import org.prauga.files.common.FileEntryRow
 import org.prauga.files.common.rememberFileLauncher
 import org.prauga.files.core.model.FileEntry
 import org.prauga.files.info.EntryActionsSheets
+import org.prauga.files.selection.BatchOverlay
+import org.prauga.files.selection.BatchTopBar
+import org.prauga.files.selection.rememberBatchSelection
 
 @Composable
 fun TaggedScreen(
@@ -63,18 +66,27 @@ fun TaggedScreen(
     var confirmDelete by rememberSaveable { mutableStateOf(false) }
     var actionsPath by rememberSaveable { mutableStateOf<String?>(null) }
     val listState = rememberLazyListState()
+    val batch =
+        rememberBatchSelection((state as? UiState.Success)?.data.orEmpty(), launcher, snackbar) {
+            viewModel.onEvent(TaggedEvent.Refresh)
+        }
+    BackHandler(enabled = batch.active) { batch.clear() }
     PvotScreenScaffold(
         topBar = {
-            PvotTopBar(
-                title = tagName,
-                onBack = onBack,
-                compact = rememberPvotTopBarCompact(listState),
-            ) {
-                PvotTopBarAction(
-                    icon = painterResource(R.drawable.ic_delete),
-                    contentDescription = stringResource(R.string.tag_delete),
-                    onClick = { confirmDelete = true },
-                )
+            if (batch.active) {
+                BatchTopBar(batch, rememberPvotTopBarCompact(listState))
+            } else {
+                PvotTopBar(
+                    title = tagName,
+                    onBack = onBack,
+                    compact = rememberPvotTopBarCompact(listState),
+                ) {
+                    PvotTopBarAction(
+                        icon = painterResource(R.drawable.ic_delete),
+                        contentDescription = stringResource(R.string.tag_delete),
+                        onClick = { confirmDelete = true },
+                    )
+                }
             }
         },
         bottomBar = bottomBar,
@@ -85,6 +97,7 @@ fun TaggedScreen(
                 launcher,
                 onDismiss = { actionsPath = null },
             )
+            BatchOverlay(batch)
             PvotDialog(
                 visible = confirmDelete,
                 onDismissRequest = { confirmDelete = false },
@@ -127,14 +140,16 @@ fun TaggedScreen(
                             FileEntryRow(
                                 entry,
                                 onClick = {
-                                    when (it) {
-                                        is FileEntry.Directory -> onOpenFolder(it.path)
-                                        is FileEntry.File -> launcher.open(it)
+                                    when {
+                                        batch.active -> batch.toggle(it.path)
+                                        it is FileEntry.Directory -> onOpenFolder(it.path)
+                                        it is FileEntry.File -> launcher.open(it)
                                     }
                                 },
-                                onLongClick = { actionsPath = it.path },
+                                onLongClick = { batch.toggle(it.path) },
                                 modifier = Modifier.fillMaxWidth(),
-                                onMore = { actionsPath = it.path },
+                                selected = entry.path in batch.selected,
+                                onMore = if (batch.active) null else ({ actionsPath = it.path }),
                             )
                         }
                     }

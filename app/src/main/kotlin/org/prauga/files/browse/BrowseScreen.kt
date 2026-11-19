@@ -32,7 +32,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -66,6 +65,7 @@ import org.prauga.files.common.transferMessages
 import org.prauga.files.core.model.FileEntry
 import org.prauga.files.core.model.ViewLayout
 import org.prauga.files.info.InfoSheet
+import org.prauga.files.selection.SelectionTopBar
 import org.prauga.files.tags.TagPickerSheet
 
 @Composable
@@ -447,43 +447,5 @@ private fun EntryGrid(
 }
 
 private val GridCellMinWidth = 104.dp
-
-@Composable
-private fun SelectionTopBar(
-    count: Int,
-    compact: Boolean,
-    onClear: () -> Unit,
-    onSelectAll: () -> Unit,
-    onShare: () -> Unit,
-    onDelete: () -> Unit,
-    onMore: () -> Unit,
-) {
-    PvotTopBar(
-        title = pluralStringResource(R.plurals.selected_count, count, count),
-        onBack = onClear,
-        compact = compact,
-    ) {
-        PvotTopBarAction(
-            painterResource(R.drawable.ic_select_all),
-            stringResource(R.string.select_all),
-            onSelectAll,
-        )
-        PvotTopBarAction(
-            painterResource(R.drawable.ic_share),
-            stringResource(R.string.action_share),
-            onShare,
-        )
-        PvotTopBarAction(
-            painterResource(R.drawable.ic_delete),
-            stringResource(R.string.action_delete),
-            onDelete,
-        )
-        PvotTopBarAction(
-            painterResource(R.drawable.ic_more),
-            stringResource(R.string.more_actions),
-            onMore,
-        )
-    }
-}
 
 private fun extensionOf(name: String): String = name.substringAfterLast('.', "").lowercase()

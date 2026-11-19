@@ -37,6 +37,9 @@ import org.prauga.files.common.rememberFileLauncher
 import org.prauga.files.core.model.FileCategory
 import org.prauga.files.core.model.FileEntry
 import org.prauga.files.info.EntryActionsSheets
+import org.prauga.files.selection.BatchOverlay
+import org.prauga.files.selection.BatchTopBar
+import org.prauga.files.selection.rememberBatchSelection
 
 @Composable
 fun CategoryScreen(
@@ -56,17 +59,29 @@ fun CategoryScreen(
     val actionsFile = (state as? UiState.Success)?.data?.firstOrNull { it.path == actionsPath }
     val listState = rememberLazyListState()
     val compact = rememberPvotTopBarCompact(listState)
+    val batch =
+        rememberBatchSelection((state as? UiState.Success)?.data.orEmpty(), launcher, snackbar) {
+            viewModel.onEvent(CategoryEvent.Retry)
+        }
+    BackHandler(enabled = batch.active) { batch.clear() }
     PvotScreenScaffold(
         topBar = {
-            PvotTopBar(
-                title = stringResource(category.labelRes),
-                onBack = onBack,
-                compact = compact,
-            )
+            if (batch.active) {
+                BatchTopBar(batch, compact)
+            } else {
+                PvotTopBar(
+                    title = stringResource(category.labelRes),
+                    onBack = onBack,
+                    compact = compact,
+                )
+            }
         },
         bottomBar = bottomBar,
         snackbarHost = { PvotSnackbarHost(snackbar) },
-        overlay = { EntryActionsSheets(actionsFile, launcher, onDismiss = { actionsPath = null }) },
+        overlay = {
+            EntryActionsSheets(actionsFile, launcher, onDismiss = { actionsPath = null })
+            BatchOverlay(batch)
+        },
     ) { padding ->
         when (val content = state) {
             UiState.Loading -> CenteredContent(padding) { PvotLoadingContent() }
@@ -93,10 +108,16 @@ fun CategoryScreen(
                         items(content.data, key = FileEntry.File::path) { file ->
                             FileEntryRow(
                                 file,
-                                onClick = { launcher.open(file) },
-                                onLongClick = { entry -> actionsPath = entry.path },
+                                onClick = {
+                                    if (batch.active) batch.toggle(file.path)
+                                    else launcher.open(file)
+                                },
+                                onLongClick = { entry -> batch.toggle(entry.path) },
                                 modifier = Modifier.fillMaxWidth(),
-                                onMore = { entry -> actionsPath = entry.path },
+                                selected = file.path in batch.selected,
+                                onMore =
+                                    if (batch.active) null
+                                    else ({ entry -> actionsPath = entry.path }),
                             )
                         }
                     }

@@ -3,6 +3,7 @@
 
 package org.prauga.files.home
 
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
@@ -50,6 +51,9 @@ import org.prauga.files.core.model.StorageUsage
 import org.prauga.files.core.model.Tag
 import org.prauga.files.core.model.Volume
 import org.prauga.files.info.EntryActionsSheets
+import org.prauga.files.selection.BatchOverlay
+import org.prauga.files.selection.BatchTopBar
+import org.prauga.files.selection.rememberBatchSelection
 
 @Composable
 fun HomeScreen(
@@ -125,16 +129,22 @@ private fun HomeContent(
     val listState = rememberLazyListState()
     val snackbar = remember { SnackbarHostState() }
     val launcher = rememberFileLauncher(snackbar)
+    val batch = rememberBatchSelection(recent, launcher, snackbar) { onEvent(HomeEvent.Refresh) }
+    BackHandler(enabled = batch.active) { batch.clear() }
     var actionsPath by rememberSaveable { mutableStateOf<String?>(null) }
     val compact = rememberPvotTopBarCompact(listState)
     PvotScreenScaffold(
         topBar = {
-            PvotTopBar(title = stringResource(R.string.home_title), compact = compact) {
-                PvotTopBarAction(
-                    icon = painterResource(R.drawable.ic_settings),
-                    contentDescription = stringResource(R.string.settings_title),
-                    onClick = onOpenSettings,
-                )
+            if (batch.active) {
+                BatchTopBar(batch, compact)
+            } else {
+                PvotTopBar(title = stringResource(R.string.home_title), compact = compact) {
+                    PvotTopBarAction(
+                        icon = painterResource(R.drawable.ic_settings),
+                        contentDescription = stringResource(R.string.settings_title),
+                        onClick = onOpenSettings,
+                    )
+                }
             }
         },
         bottomBar = bottomBar,
@@ -145,6 +155,7 @@ private fun HomeContent(
                 launcher,
                 onDismiss = { actionsPath = null },
             )
+            BatchOverlay(batch)
         },
     ) { padding ->
         PvotScreen(
@@ -361,10 +372,14 @@ private fun HomeContent(
                             item {
                                 FileEntryRow(
                                     file,
-                                    onClick = { launcher.open(file) },
-                                    onLongClick = { actionsPath = it.path },
+                                    onClick = {
+                                        if (batch.active) batch.toggle(file.path)
+                                        else launcher.open(file)
+                                    },
+                                    onLongClick = { batch.toggle(it.path) },
                                     modifier = Modifier.fillMaxWidth(),
-                                    onMore = { actionsPath = it.path },
+                                    selected = file.path in batch.selected,
+                                    onMore = if (batch.active) null else ({ actionsPath = it.path }),
                                 )
                             }
                         }
