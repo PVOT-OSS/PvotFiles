@@ -22,6 +22,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import org.prauga.files.core.data.ArchiveRepository
 import org.prauga.files.core.data.DirectoryRepository
 import org.prauga.files.core.data.DisplayOptionsRepository
 import org.prauga.files.core.data.FavouritesRepository
@@ -370,6 +371,7 @@ class BrowseViewModelTest {
                 FakeTrashRepository(),
                 FakeTransferQueue(),
                 FakeFavouritesRepository(),
+                FakeArchiveRepository(),
             )
         collect(viewModel)
 
@@ -436,6 +438,30 @@ class BrowseViewModelTest {
         assertEquals(emptySet<String>(), viewModel.state.value.selection)
     }
 
+    @Test
+    fun compressingTheSelectionZipsIntoTheCurrentFolder() = runTest {
+        val archives = FakeArchiveRepository()
+        val viewModel = viewModel(archives = archives)
+        collect(viewModel)
+
+        viewModel.onEvent(BrowseEvent.ToggleSelection(music.path))
+        viewModel.onEvent(BrowseEvent.CompressSelection)
+
+        assertEquals(listOf(listOf(music.path) to "/storage"), archives.compressed)
+        assertEquals(emptySet<String>(), viewModel.state.value.selection)
+    }
+
+    @Test
+    fun extractingPassesTheArchive() = runTest {
+        val archives = FakeArchiveRepository()
+        val viewModel = viewModel(archives = archives)
+        collect(viewModel)
+
+        viewModel.onEvent(BrowseEvent.Extract("/storage/a.zip"))
+
+        assertEquals(listOf("/storage/a.zip"), archives.extracted)
+    }
+
     private fun viewModel(
         root: String? = "/storage",
         listings: FakeDirectoryRepository = directories,
@@ -444,6 +470,7 @@ class BrowseViewModelTest {
         trash: FakeTrashRepository = FakeTrashRepository(),
         transfers: FakeTransferQueue = FakeTransferQueue(),
         favourites: FakeFavouritesRepository = FakeFavouritesRepository(),
+        archives: FakeArchiveRepository = FakeArchiveRepository(),
     ) =
         BrowseViewModel(
             saved,
@@ -454,6 +481,7 @@ class BrowseViewModelTest {
             trash,
             transfers,
             favourites,
+            archives,
         )
 
     private fun TestScope.collect(viewModel: BrowseViewModel) {
@@ -501,6 +529,21 @@ class BrowseViewModelTest {
         override suspend fun rename(path: String, newName: String): FileOperationResult {
             renamed += path to newName
             return result
+        }
+    }
+
+    private class FakeArchiveRepository : ArchiveRepository {
+        val compressed = mutableListOf<Pair<List<String>, String>>()
+        val extracted = mutableListOf<String>()
+
+        override suspend fun compress(paths: List<String>, folder: String): FileOperationResult {
+            compressed += paths to folder
+            return FileOperationResult.Done
+        }
+
+        override suspend fun extract(path: String): FileOperationResult {
+            extracted += path
+            return FileOperationResult.Done
         }
     }
 

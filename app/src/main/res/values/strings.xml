@@ -65,6 +65,8 @@
     <string name="action_rename">Rename</string>
     <string name="action_tags">Tags</string>
     <string name="action_info">Info</string>
+    <string name="action_compress">Compress to ZIP</string>
+    <string name="action_extract">Extract here</string>
     <string name="info_kind">Type</string>
     <string name="info_location">Location</string>
     <string name="info_size">Size</string>

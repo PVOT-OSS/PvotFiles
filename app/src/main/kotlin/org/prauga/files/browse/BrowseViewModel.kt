@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import org.prauga.files.core.data.ArchiveRepository
 import org.prauga.files.core.data.DirectoryRepository
 import org.prauga.files.core.data.DisplayOptionsRepository
 import org.prauga.files.core.data.FavouritesRepository
@@ -52,6 +53,7 @@ constructor(
     private val trash: TrashRepository,
     private val transfers: TransferQueue,
     private val favourites: FavouritesRepository,
+    private val archives: ArchiveRepository,
 ) : ViewModel() {
     private val effectChannel = Channel<BrowseEffect>(Channel.BUFFERED)
     val effects: Flow<BrowseEffect> = effectChannel.receiveAsFlow()
@@ -166,6 +168,13 @@ constructor(
                 setClipboard(selection.value, TransferKind.Move)
                 select(emptyList())
             }
+            is BrowseEvent.Compress -> compress(event.paths)
+            BrowseEvent.CompressSelection -> {
+                val targets = selection.value
+                select(emptyList())
+                compress(targets)
+            }
+            is BrowseEvent.Extract -> perform { archives.extract(event.path) }
             BrowseEvent.DeleteSelection -> {
                 val targets = selection.value
                 select(emptyList())
@@ -235,6 +244,11 @@ constructor(
     private suspend fun restoreAll(ids: List<String>): FileOperationResult =
         ids.map { trash.restore(it) }.firstOrNull { it != FileOperationResult.Done }
             ?: FileOperationResult.Done
+
+    private fun compress(targets: List<String>) {
+        val folder = path.value ?: return
+        if (targets.isNotEmpty()) perform { archives.compress(targets, folder) }
+    }
 
     private fun select(paths: List<String>) {
         savedStateHandle[KEY_SELECTION] = paths

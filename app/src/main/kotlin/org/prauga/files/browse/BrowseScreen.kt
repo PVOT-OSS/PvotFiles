@@ -257,6 +257,8 @@ private fun BrowseContent(
                 onMove = { onEvent(BrowseEvent.Move(it.path)) },
                 onTags = { tagsPath = it.path },
                 onInfo = { infoPath = it.path },
+                onCompress = { onEvent(BrowseEvent.Compress(listOf(it.path))) },
+                onExtract = { onEvent(BrowseEvent.Extract(it.path)) },
             )
             InfoSheet(path = infoPath, onDismiss = { infoPath = null })
             TagPickerSheet(
@@ -279,6 +281,7 @@ private fun BrowseContent(
                 onCopy = { onEvent(BrowseEvent.CopySelection) },
                 onMove = { onEvent(BrowseEvent.MoveSelection) },
                 onTags = { tagSelection = true },
+                onCompress = { onEvent(BrowseEvent.CompressSelection) },
                 onInfo =
                     state.selection.singleOrNull()?.let { only ->
                         {

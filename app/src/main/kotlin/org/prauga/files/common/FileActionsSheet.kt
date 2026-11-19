@@ -27,6 +27,8 @@ fun FileActionsSheet(
     onMove: ((FileEntry) -> Unit)? = null,
     onTags: ((FileEntry) -> Unit)? = null,
     onInfo: ((FileEntry) -> Unit)? = null,
+    onCompress: ((FileEntry) -> Unit)? = null,
+    onExtract: ((FileEntry) -> Unit)? = null,
 ) {
     var shown by remember { mutableStateOf(entry) }
     if (entry != null) shown = entry
@@ -52,6 +54,22 @@ fun FileActionsSheet(
             Action(R.string.action_move, R.drawable.ic_move) {
                 onDismiss()
                 onMove(target)
+            }
+        }
+        if (target != null && onCompress != null) {
+            Action(R.string.action_compress, R.drawable.ic_archive) {
+                onDismiss()
+                onCompress(target)
+            }
+        }
+        if (
+            target is FileEntry.File &&
+                onExtract != null &&
+                target.name.endsWith(".zip", ignoreCase = true)
+        ) {
+            Action(R.string.action_extract, R.drawable.ic_unarchive) {
+                onDismiss()
+                onExtract(target)
             }
         }
         if (target != null && onTags != null) {

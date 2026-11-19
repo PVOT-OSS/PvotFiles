@@ -40,6 +40,12 @@ sealed interface BrowseEvent {
 
     data object DeleteSelection : BrowseEvent
 
+    data class Compress(val paths: List<String>) : BrowseEvent
+
+    data object CompressSelection : BrowseEvent
+
+    data class Extract(val path: String) : BrowseEvent
+
     data class Copy(val path: String) : BrowseEvent
 
     data class Move(val path: String) : BrowseEvent
