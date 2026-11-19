@@ -12,6 +12,7 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class MainActivity : PvotBaseActivity() {
     private val launch = mutableStateOf<LaunchTarget?>(null)
+    private val folder = mutableStateOf<String?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -19,7 +20,11 @@ class MainActivity : PvotBaseActivity() {
         LaunchShortcuts.publish(this)
         setPvotContent {
             FilesTheme {
-                AppScaffold(launch = launch.value, onLaunchHandled = { launch.value = null })
+                AppScaffold(
+                    launch = launch.value,
+                    launchFolder = folder.value,
+                    onLaunchHandled = { launch.value = null },
+                )
             }
         }
     }
@@ -32,6 +37,7 @@ class MainActivity : PvotBaseActivity() {
     private fun open(intent: Intent?) {
         val target = LaunchTarget.of(intent) ?: return
         launch.value = target
-        LaunchShortcuts.reportUsed(this, target)
+        folder.value = intent?.getStringExtra(LaunchTarget.EXTRA_PATH)
+        if (target != LaunchTarget.Folder) LaunchShortcuts.reportUsed(this, target)
     }
 }

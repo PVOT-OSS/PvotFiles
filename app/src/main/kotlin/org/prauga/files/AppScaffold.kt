@@ -37,20 +37,24 @@ import org.prauga.files.tags.TaggedScreen
 import org.prauga.files.trash.TrashScreen
 
 @Composable
-fun AppScaffold(launch: LaunchTarget? = null, onLaunchHandled: () -> Unit = {}) {
+fun AppScaffold(
+    launch: LaunchTarget? = null,
+    launchFolder: String? = null,
+    onLaunchHandled: () -> Unit = {},
+) {
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background,
         contentColor = MaterialTheme.colorScheme.onBackground,
     ) {
         Box(contentAlignment = Alignment.Center) {
-            AccessScreen { AppTabs(launch, onLaunchHandled) }
+            AccessScreen { AppTabs(launch, launchFolder, onLaunchHandled) }
         }
     }
 }
 
 @Composable
-private fun AppTabs(launch: LaunchTarget?, onLaunchHandled: () -> Unit) {
+private fun AppTabs(launch: LaunchTarget?, launchFolder: String?, onLaunchHandled: () -> Unit) {
     var tab by rememberSaveable { mutableStateOf(AppTab.Home) }
     val tabStates = rememberSaveableStateHolder()
     val navBar: @Composable () -> Unit = { AppNavBar(selected = tab, onSelect = { tab = it }) }
@@ -65,6 +69,10 @@ private fun AppTabs(launch: LaunchTarget?, onLaunchHandled: () -> Unit) {
                 tab = AppTab.Browse
             }
             LaunchTarget.Clean -> tab = AppTab.Clean
+            LaunchTarget.Folder -> {
+                browseTarget = launchFolder
+                tab = AppTab.Browse
+            }
             LaunchTarget.Search -> tab = AppTab.Search
             LaunchTarget.SafeFolder -> {
                 safeRequested = true

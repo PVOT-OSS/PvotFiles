@@ -11,9 +11,12 @@ enum class LaunchTarget(val action: String) {
     Downloads("org.prauga.files.action.OPEN_DOWNLOADS"),
     Clean("org.prauga.files.action.OPEN_CLEAN"),
     Search("org.prauga.files.action.OPEN_SEARCH"),
-    SafeFolder("org.prauga.files.action.OPEN_SAFE_FOLDER");
+    SafeFolder("org.prauga.files.action.OPEN_SAFE_FOLDER"),
+    Folder("org.prauga.files.action.OPEN_FOLDER");
 
     companion object {
+        const val EXTRA_PATH = "path"
+
         fun of(intent: Intent?): LaunchTarget? =
             when (val action = intent?.action) {
                 DownloadManager.ACTION_VIEW_DOWNLOADS -> Downloads
