@@ -9,4 +9,5 @@ data class TrashedItem(
     val originalPath: String,
     val deletedAtMillis: Long,
     val isDirectory: Boolean,
+    val sizeBytes: Long = 0,
 )

@@ -9,4 +9,6 @@ sealed interface TrashEvent {
     data class DeleteForever(val id: String) : TrashEvent
 
     data object Retry : TrashEvent
+
+    data object EmptyAll : TrashEvent
 }

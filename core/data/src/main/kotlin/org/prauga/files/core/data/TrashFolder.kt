@@ -75,7 +75,8 @@ internal class TrashFolder(private val root: File) {
         val deleted = fields[DELETED]?.toLongOrNull() ?: return null
         val item = File(files, id)
         if (!item.exists()) return null
-        return TrashedItem(id, File(path).name, path, deleted, item.isDirectory)
+        val size = if (item.isDirectory) FolderSize.of(item).bytes else item.length()
+        return TrashedItem(id, File(path).name, path, deleted, item.isDirectory, size)
     }
 
     private fun infoFile(id: String) = File(info, id + INFO_SUFFIX)

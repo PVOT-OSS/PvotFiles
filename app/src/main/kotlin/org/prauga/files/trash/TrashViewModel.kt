@@ -51,6 +51,15 @@ class TrashViewModel @Inject constructor(private val repository: TrashRepository
             }
             is TrashEvent.DeleteForever -> perform({ repository.deleteForever(event.id) }) { null }
             TrashEvent.Retry -> attempt.value++
+            TrashEvent.EmptyAll -> {
+                val ids = (state.value as? UiState.Success)?.data.orEmpty().map { it.id }
+                perform({
+                    ids.map { repository.deleteForever(it) }
+                        .firstOrNull { it != FileOperationResult.Done } ?: FileOperationResult.Done
+                }) {
+                    null
+                }
+            }
         }
     }
 

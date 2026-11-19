@@ -4,6 +4,7 @@
 package org.prauga.files.trash
 
 import android.text.format.DateUtils
+import android.text.format.Formatter
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,7 +23,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -40,6 +43,7 @@ import com.prauga.pvot.designsystem.components.PvotSheetItem
 import com.prauga.pvot.designsystem.components.PvotSnackbarHost
 import com.prauga.pvot.designsystem.components.list.PvotListRow
 import com.prauga.pvot.designsystem.navigation.PvotTopBar
+import com.prauga.pvot.designsystem.navigation.PvotTopBarAction
 import com.prauga.pvot.designsystem.navigation.rememberPvotTopBarCompact
 import com.prauga.pvot.designsystem.theme.PvotSpacing
 import java.io.File
@@ -76,13 +80,22 @@ fun TrashScreen(
     val selected = items.firstOrNull { it.id == selectedId }
     val confirm = items.firstOrNull { it.id == confirmId }
     val listState = rememberLazyListState()
+    var confirmEmpty by rememberSaveable { mutableStateOf(false) }
     PvotScreenScaffold(
         topBar = {
             PvotTopBar(
                 title = stringResource(R.string.trash_title),
                 onBack = onBack,
                 compact = rememberPvotTopBarCompact(listState),
-            )
+            ) {
+                if (items.isNotEmpty()) {
+                    PvotTopBarAction(
+                        painterResource(R.drawable.ic_delete),
+                        stringResource(R.string.trash_empty_action),
+                        onClick = { confirmEmpty = true },
+                    )
+                }
+            }
         },
         bottomBar = bottomBar,
         snackbarHost = { PvotSnackbarHost(snackbar) },
@@ -93,6 +106,30 @@ fun TrashScreen(
                 onRestore = { onEvent(TrashEvent.Restore(it.id)) },
                 onDeleteForever = { confirmId = it.id },
             )
+            PvotDialog(
+                visible = confirmEmpty,
+                onDismissRequest = { confirmEmpty = false },
+                title = stringResource(R.string.trash_empty_title),
+                message =
+                    pluralStringResource(
+                        R.plurals.trash_empty_message,
+                        items.size,
+                        items.size,
+                        Formatter.formatShortFileSize(
+                            LocalContext.current,
+                            items.sumOf { it.sizeBytes },
+                        ),
+                    ),
+                destructive = true,
+            ) {
+                PvotDialogAction(
+                    label = stringResource(R.string.trash_empty_action),
+                    onClick = {
+                        confirmEmpty = false
+                        onEvent(TrashEvent.EmptyAll)
+                    },
+                )
+            }
             PvotDialog(
                 visible = confirm != null,
                 onDismissRequest = { confirmId = null },
