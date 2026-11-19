@@ -56,6 +56,7 @@ fun HomeScreen(
     onOpenFolder: (String) -> Unit,
     onOpenCategory: (FileCategory) -> Unit,
     onOpenTrash: () -> Unit,
+    onOpenSafe: () -> Unit,
     onOpenTag: (String) -> Unit,
     onOpenSettings: () -> Unit,
     onOpenLocation: (SavedLocation) -> Unit,
@@ -89,6 +90,7 @@ fun HomeScreen(
         onOpenFolder = onOpenFolder,
         onOpenCategory = onOpenCategory,
         onOpenTrash = onOpenTrash,
+        onOpenSafe = onOpenSafe,
         onOpenTag = onOpenTag,
         onOpenSettings = onOpenSettings,
         onOpenLocation = onOpenLocation,
@@ -111,6 +113,7 @@ private fun HomeContent(
     onOpenFolder: (String) -> Unit,
     onOpenCategory: (FileCategory) -> Unit,
     onOpenTrash: () -> Unit,
+    onOpenSafe: () -> Unit,
     onOpenTag: (String) -> Unit,
     onOpenSettings: () -> Unit,
     onOpenLocation: (SavedLocation) -> Unit,
@@ -291,6 +294,17 @@ private fun HomeContent(
                                     painterResource(R.drawable.ic_delete),
                                     contentDescription = null,
                                 )
+                            },
+                            iconStyle = PvotRowIconStyle.Plain,
+                            chevron = PvotRowChevron.Arrow,
+                        )
+                    }
+                    item {
+                        PvotPreferenceRow(
+                            title = stringResource(R.string.safe_title),
+                            onClick = onOpenSafe,
+                            icon = {
+                                Icon(painterResource(R.drawable.ic_lock), contentDescription = null)
                             },
                             iconStyle = PvotRowIconStyle.Plain,
                             chevron = PvotRowChevron.Arrow,

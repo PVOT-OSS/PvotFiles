@@ -107,6 +107,33 @@
         <item quantity="one">Move %1$d item (%2$s) to Recently deleted</item>
         <item quantity="other">Move %1$d items (%2$s) to Recently deleted</item>
     </plurals>
+    <string name="safe_title">Safe folder</string>
+    <string name="safe_setup_title">Set up Safe folder</string>
+    <string name="safe_setup_message">Choose a PIN of at least 4 digits. Files you move here are encrypted and hidden from other apps. If you forget the PIN, they can\'t be recovered.</string>
+    <string name="safe_setup_action">Set PIN</string>
+    <string name="safe_pin">PIN</string>
+    <string name="safe_pin_confirm">Confirm PIN</string>
+    <string name="safe_pin_mismatch">The PINs don\'t match. Try again.</string>
+    <string name="safe_pin_too_short">Use at least 4 digits.</string>
+    <string name="safe_locked_title">Safe folder is locked</string>
+    <string name="safe_locked_message">Enter your PIN.</string>
+    <string name="safe_locked_out">Too many wrong PINs. Try again after %1$s.</string>
+    <plurals name="safe_wrong_pin">
+        <item quantity="one">Wrong PIN. %d try left before a wait.</item>
+        <item quantity="other">Wrong PIN. %d tries left before a wait.</item>
+    </plurals>
+    <string name="safe_unlock">Unlock</string>
+    <string name="safe_lock">Lock</string>
+    <string name="safe_empty">Nothing here yet. Use Move to Safe folder on a file.</string>
+    <string name="safe_error_title">Couldn\'t open Safe folder</string>
+    <string name="safe_error_message">Lock it and try again.</string>
+    <string name="safe_move_out">Move out to Downloads</string>
+    <string name="safe_moved_out">%1$s moved to Downloads</string>
+    <string name="safe_delete_title">Delete %1$s forever?</string>
+    <string name="safe_delete_message">It can\'t be restored.</string>
+    <string name="action_move_to_safe">Move to Safe folder</string>
+    <string name="safe_moved_in">Moved to Safe folder</string>
+    <string name="safe_needs_setup">Set up Safe folder on Home first.</string>
     <string name="action_play">Play</string>
     <string name="action_pause">Pause</string>
     <string name="viewer_page">Page %1$d of %2$d</string>

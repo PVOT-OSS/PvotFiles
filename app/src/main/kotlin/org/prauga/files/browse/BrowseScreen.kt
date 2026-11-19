@@ -112,6 +112,8 @@ private fun BrowseContent(
     val undo = stringResource(R.string.undo)
     val transferMessages = transferMessages()
     val resources = LocalResources.current
+    val movedToSafe = stringResource(R.string.safe_moved_in)
+    val safeNeedsSetup = stringResource(R.string.safe_needs_setup)
     val context = LocalContext.current
     val requestNotifications =
         rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
@@ -138,6 +140,8 @@ private fun BrowseContent(
                     snackbar.showSnackbar(messages.getValue(effect.result))
                 is BrowseEffect.TransferFinished ->
                     snackbar.showSnackbar(transferMessages.getValue(effect.kind to effect.outcome))
+                BrowseEffect.MovedToSafe -> snackbar.showSnackbar(movedToSafe)
+                BrowseEffect.SafeFolderNeedsSetup -> snackbar.showSnackbar(safeNeedsSetup)
                 is BrowseEffect.Trashed -> {
                     val message =
                         if (effect.names.size == 1) {
@@ -259,6 +263,7 @@ private fun BrowseContent(
                 onInfo = { infoPath = it.path },
                 onCompress = { onEvent(BrowseEvent.Compress(listOf(it.path))) },
                 onExtract = { onEvent(BrowseEvent.Extract(it.path)) },
+                onMoveToSafe = { onEvent(BrowseEvent.MoveToSafe(listOf(it.path))) },
             )
             InfoSheet(path = infoPath, onDismiss = { infoPath = null })
             TagPickerSheet(
@@ -282,6 +287,7 @@ private fun BrowseContent(
                 onMove = { onEvent(BrowseEvent.MoveSelection) },
                 onTags = { tagSelection = true },
                 onCompress = { onEvent(BrowseEvent.CompressSelection) },
+                onMoveToSafe = { onEvent(BrowseEvent.MoveSelectionToSafe) },
                 onInfo =
                     state.selection.singleOrNull()?.let { only ->
                         {

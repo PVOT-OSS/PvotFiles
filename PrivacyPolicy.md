@@ -44,9 +44,18 @@ delete them forever.
   after you leave the app, with its progress in a notification. Android asks you before the app may
   show notifications; if you say no, copies and moves still work.
 
+Your recent searches (the last 10) are kept on your device until you clear them.
+
+Files you move to the Safe folder are encrypted and kept in the app's private storage. The key
+is held by Android's keystore on this device and never leaves it; your PIN is stored only as a
+salted hash. If you forget the PIN or uninstall the app, these files can't be recovered. When you
+open one, a temporary decrypted copy is made in the app's cache and removed when the Safe folder
+locks.
+
 ## Backups
 
-Android may include the app's data in your device backup and in a transfer to a new device.
+Android may include the app's data in your device backup and in a transfer to a new device. The
+Safe folder, its key and its PIN are left out of both.
 
 ## Changes
 

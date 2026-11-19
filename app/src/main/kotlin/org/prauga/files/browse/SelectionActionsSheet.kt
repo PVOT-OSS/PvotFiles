@@ -21,6 +21,7 @@ fun SelectionActionsSheet(
     onMove: () -> Unit,
     onTags: () -> Unit,
     onCompress: () -> Unit,
+    onMoveToSafe: () -> Unit,
     onInfo: (() -> Unit)?,
 ) {
     FilesBottomSheet(
@@ -32,6 +33,7 @@ fun SelectionActionsSheet(
         Item(R.string.action_move, R.drawable.ic_move, onDismiss, onMove)
         Item(R.string.action_tags, R.drawable.ic_tag, onDismiss, onTags)
         Item(R.string.action_compress, R.drawable.ic_archive, onDismiss, onCompress)
+        Item(R.string.action_move_to_safe, R.drawable.ic_lock, onDismiss, onMoveToSafe)
         if (onInfo != null) Item(R.string.action_info, R.drawable.ic_info, onDismiss, onInfo)
     }
 }

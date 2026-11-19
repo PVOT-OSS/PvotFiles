@@ -9,6 +9,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
@@ -27,15 +28,18 @@ import org.prauga.files.core.data.DirectoryRepository
 import org.prauga.files.core.data.DisplayOptionsRepository
 import org.prauga.files.core.data.FavouritesRepository
 import org.prauga.files.core.data.FileOperationsRepository
+import org.prauga.files.core.data.SafeFolderRepository
 import org.prauga.files.core.data.StorageRepository
 import org.prauga.files.core.data.TrashRepository
 import org.prauga.files.core.model.DirectoryListing
 import org.prauga.files.core.model.DisplayOptions
 import org.prauga.files.core.model.FileEntry
 import org.prauga.files.core.model.FileOperationResult
+import org.prauga.files.core.model.SafeItem
 import org.prauga.files.core.model.SortOrder
 import org.prauga.files.core.model.TransferKind
 import org.prauga.files.core.model.TrashedItem
+import org.prauga.files.core.model.UnlockResult
 import org.prauga.files.core.model.ViewLayout
 import org.prauga.files.core.model.Volume
 import org.prauga.files.transfer.TransferOutcome
@@ -372,6 +376,7 @@ class BrowseViewModelTest {
                 FakeTransferQueue(),
                 FakeFavouritesRepository(),
                 FakeArchiveRepository(),
+                FakeSafeFolderRepository(),
             )
         collect(viewModel)
 
@@ -462,6 +467,33 @@ class BrowseViewModelTest {
         assertEquals(listOf("/storage/a.zip"), archives.extracted)
     }
 
+    @Test
+    fun movingToTheSafeFolderNeedsAPinFirst() = runTest {
+        val viewModel = viewModel(safe = FakeSafeFolderRepository(pin = false))
+        val effects = mutableListOf<BrowseEffect>()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.effects.collect { effects += it }
+        }
+        collect(viewModel)
+
+        viewModel.onEvent(BrowseEvent.MoveToSafe(listOf(music.path)))
+
+        assertEquals(listOf<BrowseEffect>(BrowseEffect.SafeFolderNeedsSetup), effects)
+    }
+
+    @Test
+    fun movingTheSelectionToTheSafeFolderClearsIt() = runTest {
+        val safe = FakeSafeFolderRepository()
+        val viewModel = viewModel(safe = safe)
+        collect(viewModel)
+
+        viewModel.onEvent(BrowseEvent.ToggleSelection(music.path))
+        viewModel.onEvent(BrowseEvent.MoveSelectionToSafe)
+
+        assertEquals(listOf(listOf(music.path)), safe.added)
+        assertEquals(emptySet<String>(), viewModel.state.value.selection)
+    }
+
     private fun viewModel(
         root: String? = "/storage",
         listings: FakeDirectoryRepository = directories,
@@ -471,6 +503,7 @@ class BrowseViewModelTest {
         transfers: FakeTransferQueue = FakeTransferQueue(),
         favourites: FakeFavouritesRepository = FakeFavouritesRepository(),
         archives: FakeArchiveRepository = FakeArchiveRepository(),
+        safe: FakeSafeFolderRepository = FakeSafeFolderRepository(),
     ) =
         BrowseViewModel(
             saved,
@@ -482,6 +515,7 @@ class BrowseViewModelTest {
             transfers,
             favourites,
             archives,
+            safe,
         )
 
     private fun TestScope.collect(viewModel: BrowseViewModel) {
@@ -530,6 +564,30 @@ class BrowseViewModelTest {
             renamed += path to newName
             return result
         }
+    }
+
+    private class FakeSafeFolderRepository(pin: Boolean = true) : SafeFolderRepository {
+        val added = mutableListOf<List<String>>()
+        override val hasPin: Flow<Boolean> = flowOf(pin)
+
+        override suspend fun setPin(pin: String) = true
+
+        override suspend fun unlock(pin: String): UnlockResult = UnlockResult.Unlocked
+
+        override suspend fun items(): List<SafeItem> = emptyList()
+
+        override suspend fun add(paths: List<String>): FileOperationResult {
+            added += paths
+            return FileOperationResult.Done
+        }
+
+        override suspend fun moveOut(id: String, folder: String) = FileOperationResult.Done
+
+        override suspend fun open(id: String): String? = null
+
+        override suspend fun delete(id: String) = FileOperationResult.Done
+
+        override suspend fun clearOpened() = Unit
     }
 
     private class FakeArchiveRepository : ArchiveRepository {

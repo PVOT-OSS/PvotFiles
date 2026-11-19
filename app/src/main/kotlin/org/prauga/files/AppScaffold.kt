@@ -27,6 +27,7 @@ import org.prauga.files.core.model.FileCategory
 import org.prauga.files.core.model.SavedLocation
 import org.prauga.files.home.HomeScreen
 import org.prauga.files.locations.TreeScreen
+import org.prauga.files.safe.SafeFolderScreen
 import org.prauga.files.search.SearchScreen
 import org.prauga.files.settings.AboutScreen
 import org.prauga.files.settings.SettingsScreen
@@ -100,6 +101,7 @@ private fun HomeTab(
 ) {
     var category by rememberSaveable { mutableStateOf<FileCategory?>(null) }
     var trashOpen by rememberSaveable { mutableStateOf(false) }
+    var safeOpen by rememberSaveable { mutableStateOf(false) }
     var tagOpen by rememberSaveable { mutableStateOf<String?>(null) }
     var settingsOpen by rememberSaveable { mutableStateOf(false) }
     var aboutOpen by rememberSaveable { mutableStateOf(false) }
@@ -119,6 +121,7 @@ private fun HomeTab(
                 bottomBar = bottomBar,
             )
         trashOpen -> TrashScreen(onBack = { trashOpen = false }, bottomBar = bottomBar)
+        safeOpen -> SafeFolderScreen(onBack = { safeOpen = false }, bottomBar = bottomBar)
         tag != null ->
             TaggedScreen(
                 tagName = tag,
@@ -133,6 +136,7 @@ private fun HomeTab(
                 onOpenFolder = onOpenFolder,
                 onOpenCategory = { category = it },
                 onOpenTrash = { trashOpen = true },
+                onOpenSafe = { safeOpen = true },
                 onOpenTag = { tagOpen = it },
                 onOpenSettings = { settingsOpen = true },
                 onOpenLocation = {

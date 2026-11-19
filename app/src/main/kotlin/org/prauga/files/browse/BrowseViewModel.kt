@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -29,6 +30,7 @@ import org.prauga.files.core.data.DirectoryRepository
 import org.prauga.files.core.data.DisplayOptionsRepository
 import org.prauga.files.core.data.FavouritesRepository
 import org.prauga.files.core.data.FileOperationsRepository
+import org.prauga.files.core.data.SafeFolderRepository
 import org.prauga.files.core.data.StorageRepository
 import org.prauga.files.core.data.TrashRepository
 import org.prauga.files.core.model.DirectoryListing
@@ -54,6 +56,7 @@ constructor(
     private val transfers: TransferQueue,
     private val favourites: FavouritesRepository,
     private val archives: ArchiveRepository,
+    private val safeFolder: SafeFolderRepository,
 ) : ViewModel() {
     private val effectChannel = Channel<BrowseEffect>(Channel.BUFFERED)
     val effects: Flow<BrowseEffect> = effectChannel.receiveAsFlow()
@@ -175,6 +178,12 @@ constructor(
                 compress(targets)
             }
             is BrowseEvent.Extract -> perform { archives.extract(event.path) }
+            is BrowseEvent.MoveToSafe -> moveToSafe(event.paths)
+            BrowseEvent.MoveSelectionToSafe -> {
+                val targets = selection.value
+                select(emptyList())
+                moveToSafe(targets)
+            }
             BrowseEvent.DeleteSelection -> {
                 val targets = selection.value
                 select(emptyList())
@@ -244,6 +253,22 @@ constructor(
     private suspend fun restoreAll(ids: List<String>): FileOperationResult =
         ids.map { trash.restore(it) }.firstOrNull { it != FileOperationResult.Done }
             ?: FileOperationResult.Done
+
+    private fun moveToSafe(targets: List<String>) {
+        if (targets.isEmpty()) return
+        viewModelScope.launch {
+            if (!safeFolder.hasPin.first()) {
+                effectChannel.send(BrowseEffect.SafeFolderNeedsSetup)
+                return@launch
+            }
+            val result = safeFolder.add(targets)
+            attempt.value++
+            effectChannel.send(
+                if (result == FileOperationResult.Done) BrowseEffect.MovedToSafe
+                else BrowseEffect.OperationFailed(result)
+            )
+        }
+    }
 
     private fun compress(targets: List<String>) {
         val folder = path.value ?: return

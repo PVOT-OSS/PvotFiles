@@ -29,6 +29,7 @@ fun FileActionsSheet(
     onInfo: ((FileEntry) -> Unit)? = null,
     onCompress: ((FileEntry) -> Unit)? = null,
     onExtract: ((FileEntry) -> Unit)? = null,
+    onMoveToSafe: ((FileEntry) -> Unit)? = null,
 ) {
     var shown by remember { mutableStateOf(entry) }
     if (entry != null) shown = entry
@@ -70,6 +71,12 @@ fun FileActionsSheet(
             Action(R.string.action_extract, R.drawable.ic_unarchive) {
                 onDismiss()
                 onExtract(target)
+            }
+        }
+        if (target is FileEntry.File && onMoveToSafe != null) {
+            Action(R.string.action_move_to_safe, R.drawable.ic_lock) {
+                onDismiss()
+                onMoveToSafe(target)
             }
         }
         if (target != null && onTags != null) {

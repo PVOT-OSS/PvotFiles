@@ -46,6 +46,10 @@ sealed interface BrowseEvent {
 
     data class Extract(val path: String) : BrowseEvent
 
+    data class MoveToSafe(val paths: List<String>) : BrowseEvent
+
+    data object MoveSelectionToSafe : BrowseEvent
+
     data class Copy(val path: String) : BrowseEvent
 
     data class Move(val path: String) : BrowseEvent

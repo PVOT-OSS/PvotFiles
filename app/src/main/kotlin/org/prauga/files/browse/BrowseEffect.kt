@@ -10,6 +10,10 @@ import org.prauga.files.transfer.TransferOutcome
 sealed interface BrowseEffect {
     data class OperationFailed(val result: FileOperationResult) : BrowseEffect
 
+    data object MovedToSafe : BrowseEffect
+
+    data object SafeFolderNeedsSetup : BrowseEffect
+
     data class Trashed(val trashIds: List<String>, val names: List<String>) : BrowseEffect
 
     data class TransferFinished(val kind: TransferKind, val outcome: TransferOutcome) :
