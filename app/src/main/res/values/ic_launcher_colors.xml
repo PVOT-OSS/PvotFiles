@@ -4,5 +4,7 @@
      SPDX-License-Identifier: Apache-2.0
 -->
 <resources>
-    <color name="ic_launcher_background">#FF1F6FEB</color>
+    <color name="ic_launcher_background">#FFFFFFFF</color>
+    <color name="ic_launcher_folder">#FFCFC7FF</color>
+    <color name="ic_launcher_accent">#FF5A4BFF</color>
 </resources>
