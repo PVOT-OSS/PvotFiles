@@ -23,7 +23,6 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import org.prauga.files.core.data.ArchiveRepository
 import org.prauga.files.core.data.DirectoryRepository
 import org.prauga.files.core.data.DisplayOptionsRepository
 import org.prauga.files.core.data.FavouritesRepository
@@ -31,7 +30,6 @@ import org.prauga.files.core.data.FileOperationsRepository
 import org.prauga.files.core.data.SafeFolderRepository
 import org.prauga.files.core.data.StorageRepository
 import org.prauga.files.core.data.TrashRepository
-import org.prauga.files.core.model.ArchiveEntry
 import org.prauga.files.core.model.DirectoryListing
 import org.prauga.files.core.model.DisplayOptions
 import org.prauga.files.core.model.FileEntry
@@ -43,6 +41,9 @@ import org.prauga.files.core.model.TrashedItem
 import org.prauga.files.core.model.UnlockResult
 import org.prauga.files.core.model.ViewLayout
 import org.prauga.files.core.model.Volume
+import org.prauga.files.transfer.ArchiveOperation
+import org.prauga.files.transfer.ArchiveQueue
+import org.prauga.files.transfer.ArchiveUpdate
 import org.prauga.files.transfer.TransferOutcome
 import org.prauga.files.transfer.TransferQueue
 import org.prauga.files.transfer.TransferUpdate
@@ -376,7 +377,7 @@ class BrowseViewModelTest {
                 FakeTrashRepository(),
                 FakeTransferQueue(),
                 FakeFavouritesRepository(),
-                FakeArchiveRepository(),
+                FakeArchiveQueue(),
                 FakeSafeFolderRepository(),
             )
         collect(viewModel)
@@ -446,7 +447,7 @@ class BrowseViewModelTest {
 
     @Test
     fun compressingTheSelectionZipsIntoTheCurrentFolder() = runTest {
-        val archives = FakeArchiveRepository()
+        val archives = FakeArchiveQueue()
         val viewModel = viewModel(archives = archives)
         collect(viewModel)
 
@@ -459,7 +460,7 @@ class BrowseViewModelTest {
 
     @Test
     fun extractingPassesTheArchive() = runTest {
-        val archives = FakeArchiveRepository()
+        val archives = FakeArchiveQueue()
         val viewModel = viewModel(archives = archives)
         collect(viewModel)
 
@@ -503,7 +504,7 @@ class BrowseViewModelTest {
         trash: FakeTrashRepository = FakeTrashRepository(),
         transfers: FakeTransferQueue = FakeTransferQueue(),
         favourites: FakeFavouritesRepository = FakeFavouritesRepository(),
-        archives: FakeArchiveRepository = FakeArchiveRepository(),
+        archives: FakeArchiveQueue = FakeArchiveQueue(),
         safe: FakeSafeFolderRepository = FakeSafeFolderRepository(),
     ) =
         BrowseViewModel(
@@ -591,23 +592,17 @@ class BrowseViewModelTest {
         override suspend fun clearOpened() = Unit
     }
 
-    private class FakeArchiveRepository : ArchiveRepository {
+    private class FakeArchiveQueue : ArchiveQueue {
         val compressed = mutableListOf<Pair<List<String>, String>>()
         val extracted = mutableListOf<String>()
+        override val updates: Flow<List<ArchiveUpdate>> = flowOf(emptyList())
 
-        override suspend fun compress(paths: List<String>, folder: String): FileOperationResult {
-            compressed += paths to folder
-            return FileOperationResult.Done
+        override fun start(operation: ArchiveOperation, paths: List<String>, folder: String) {
+            when (operation) {
+                ArchiveOperation.Compress -> compressed += paths to folder
+                ArchiveOperation.Extract -> extracted += paths
+            }
         }
-
-        override suspend fun extract(path: String): FileOperationResult {
-            extracted += path
-            return FileOperationResult.Done
-        }
-
-        override suspend fun extractTo(path: String, folder: String) = FileOperationResult.Done
-
-        override suspend fun entries(path: String): List<ArchiveEntry> = emptyList()
     }
 
     private class FakeFavouritesRepository : FavouritesRepository {

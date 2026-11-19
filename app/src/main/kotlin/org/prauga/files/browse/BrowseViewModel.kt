@@ -25,7 +25,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import org.prauga.files.core.data.ArchiveRepository
 import org.prauga.files.core.data.DirectoryRepository
 import org.prauga.files.core.data.DisplayOptionsRepository
 import org.prauga.files.core.data.FavouritesRepository
@@ -41,6 +40,8 @@ import org.prauga.files.core.model.TransferKind
 import org.prauga.files.core.model.Volume
 import org.prauga.files.core.model.sortedFor
 import org.prauga.files.core.model.volumeOf
+import org.prauga.files.transfer.ArchiveOperation
+import org.prauga.files.transfer.ArchiveQueue
 import org.prauga.files.transfer.TransferQueue
 
 @HiltViewModel
@@ -55,7 +56,7 @@ constructor(
     private val trash: TrashRepository,
     private val transfers: TransferQueue,
     private val favourites: FavouritesRepository,
-    private val archives: ArchiveRepository,
+    private val archives: ArchiveQueue,
     private val safeFolder: SafeFolderRepository,
 ) : ViewModel() {
     private val effectChannel = Channel<BrowseEffect>(Channel.BUFFERED)
@@ -78,6 +79,7 @@ constructor(
             .stateIn(viewModelScope, SharingStarted.Eagerly, null)
     private val transferring = MutableStateFlow(false)
     private val reportedTransfers = mutableSetOf<String>()
+    private val reportedArchives = mutableSetOf<String>()
     private val options: StateFlow<DisplayOptions> =
         displayOptions.options.stateIn(viewModelScope, SharingStarted.Eagerly, DisplayOptions())
 
@@ -109,6 +111,25 @@ constructor(
             )
 
     init {
+        viewModelScope.launch {
+            var seeded = false
+            archives.updates.collect { updates ->
+                val finished = updates.filter { it.succeeded != null }
+                if (!seeded) {
+                    seeded = true
+                    reportedArchives += finished.map { it.id }
+                } else {
+                    finished
+                        .filter { reportedArchives.add(it.id) }
+                        .forEach {
+                            attempt.value++
+                            effectChannel.send(
+                                BrowseEffect.ArchiveFinished(it.operation, it.succeeded == true)
+                            )
+                        }
+                }
+            }
+        }
         viewModelScope.launch {
             var seeded = false
             transfers.updates.collect { updates ->
@@ -177,7 +198,10 @@ constructor(
                 select(emptyList())
                 compress(targets)
             }
-            is BrowseEvent.Extract -> perform { archives.extract(event.path) }
+            is BrowseEvent.Extract ->
+                File(event.path).parent?.let {
+                    archives.start(ArchiveOperation.Extract, listOf(event.path), it)
+                }
             is BrowseEvent.MoveToSafe -> moveToSafe(event.paths)
             is BrowseEvent.ToggleFavouriteOf -> {
                 val starred = event.path in state.value.favourites
@@ -276,7 +300,7 @@ constructor(
 
     private fun compress(targets: List<String>) {
         val folder = path.value ?: return
-        if (targets.isNotEmpty()) perform { archives.compress(targets, folder) }
+        if (targets.isNotEmpty()) archives.start(ArchiveOperation.Compress, targets, folder)
     }
 
     private fun select(paths: List<String>) {

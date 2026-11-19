@@ -12,4 +12,6 @@ import dagger.hilt.components.SingletonComponent
 @InstallIn(SingletonComponent::class)
 interface TransferModule {
     @Binds fun bindTransferQueue(queue: WorkTransferQueue): TransferQueue
+
+    @Binds fun bindArchiveQueue(queue: WorkArchiveQueue): ArchiveQueue
 }

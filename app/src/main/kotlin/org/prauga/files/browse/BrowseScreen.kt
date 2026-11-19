@@ -67,6 +67,7 @@ import org.prauga.files.core.model.ViewLayout
 import org.prauga.files.info.InfoSheet
 import org.prauga.files.selection.SelectionTopBar
 import org.prauga.files.tags.TagPickerSheet
+import org.prauga.files.transfer.ArchiveOperation
 
 @Composable
 fun BrowseScreen(
@@ -117,6 +118,9 @@ private fun BrowseContent(
     val transferMessages = transferMessages()
     val resources = LocalResources.current
     val movedToSafe = stringResource(R.string.safe_moved_in)
+    val compressedMessage = stringResource(R.string.archive_compressed)
+    val extractedMessage = stringResource(R.string.archive_extracted)
+    val failedMessage = stringResource(R.string.operation_failed)
     val safeNeedsSetup = stringResource(R.string.safe_needs_setup)
     val context = LocalContext.current
     val requestNotifications =
@@ -145,6 +149,14 @@ private fun BrowseContent(
                 is BrowseEffect.TransferFinished ->
                     snackbar.showSnackbar(transferMessages.getValue(effect.kind to effect.outcome))
                 BrowseEffect.MovedToSafe -> snackbar.showSnackbar(movedToSafe)
+                is BrowseEffect.ArchiveFinished ->
+                    snackbar.showSnackbar(
+                        when {
+                            !effect.succeeded -> failedMessage
+                            effect.operation == ArchiveOperation.Compress -> compressedMessage
+                            else -> extractedMessage
+                        }
+                    )
                 BrowseEffect.SafeFolderNeedsSetup -> snackbar.showSnackbar(safeNeedsSetup)
                 is BrowseEffect.Trashed -> {
                     val message =

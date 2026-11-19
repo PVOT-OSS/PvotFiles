@@ -163,6 +163,10 @@
     <string name="safe_needs_setup">Set up Safe folder on Home first.</string>
     <string name="action_play">Play</string>
     <string name="action_pause">Pause</string>
+    <string name="archive_compressing">Compressing…</string>
+    <string name="archive_extracting">Extracting…</string>
+    <string name="archive_compressed">Compressed to ZIP</string>
+    <string name="archive_extracted">Extracted</string>
     <string name="viewer_extracted">Extracted to %1$s</string>
     <string name="viewer_extract_here">Extract here</string>
     <string name="viewer_extract_downloads">Extract to Downloads</string>

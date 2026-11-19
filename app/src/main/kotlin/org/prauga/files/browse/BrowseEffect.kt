@@ -5,12 +5,16 @@ package org.prauga.files.browse
 
 import org.prauga.files.core.model.FileOperationResult
 import org.prauga.files.core.model.TransferKind
+import org.prauga.files.transfer.ArchiveOperation
 import org.prauga.files.transfer.TransferOutcome
 
 sealed interface BrowseEffect {
     data class OperationFailed(val result: FileOperationResult) : BrowseEffect
 
     data object MovedToSafe : BrowseEffect
+
+    data class ArchiveFinished(val operation: ArchiveOperation, val succeeded: Boolean) :
+        BrowseEffect
 
     data object SafeFolderNeedsSetup : BrowseEffect
 
