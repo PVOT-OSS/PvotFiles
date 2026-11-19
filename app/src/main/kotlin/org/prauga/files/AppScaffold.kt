@@ -19,6 +19,9 @@ import androidx.compose.ui.Modifier
 import org.prauga.files.access.AccessScreen
 import org.prauga.files.browse.BrowseScreen
 import org.prauga.files.category.CategoryScreen
+import org.prauga.files.clean.CleanListScreen
+import org.prauga.files.clean.CleanScreen
+import org.prauga.files.core.model.CleanCategory
 import org.prauga.files.core.model.FileCategory
 import org.prauga.files.core.model.SavedLocation
 import org.prauga.files.home.HomeScreen
@@ -58,6 +61,7 @@ private fun AppTabs() {
                     },
                     bottomBar = navBar,
                 )
+            AppTab.Clean -> CleanTab(bottomBar = navBar)
             AppTab.Search -> SearchScreen(bottomBar = navBar)
             AppTab.Browse ->
                 BrowseScreen(
@@ -66,6 +70,17 @@ private fun AppTabs() {
                     onOpened = { browseTarget = null },
                 )
         }
+    }
+}
+
+@Composable
+private fun CleanTab(bottomBar: @Composable () -> Unit) {
+    var open by rememberSaveable { mutableStateOf<CleanCategory?>(null) }
+    val category = open
+    if (category != null) {
+        CleanListScreen(category, onBack = { open = null }, bottomBar = bottomBar)
+    } else {
+        CleanScreen(onOpenCategory = { open = it }, bottomBar = bottomBar)
     }
 }
 

@@ -68,6 +68,26 @@
     <string name="viewer_error_title">Couldn\'t open this file</string>
     <string name="viewer_error_message">It may be damaged, or Files can\'t show this kind of file. Try Open with.</string>
     <string name="viewer_text_truncated">Showing the first 256 KB of this file.</string>
+    <string name="tab_clean">Clean</string>
+    <string name="clean_title">Clean</string>
+    <string name="clean_large">Large files</string>
+    <string name="clean_duplicates">Duplicate files</string>
+    <string name="clean_screenshots">Old screenshots</string>
+    <string name="clean_downloads">Old downloads</string>
+    <string name="clean_empty_folders">Empty folders</string>
+    <string name="clean_nothing">Nothing to clean here.</string>
+    <string name="clean_caches">Clear app caches</string>
+    <string name="clean_caches_details">Android asks before clearing temporary files apps keep.</string>
+    <string name="clean_error_title">Couldn\'t check your storage</string>
+    <string name="clean_error_message">Try again in a moment.</string>
+    <plurals name="clean_item_count">
+        <item quantity="one">%d item</item>
+        <item quantity="other">%d items</item>
+    </plurals>
+    <plurals name="clean_move">
+        <item quantity="one">Move %1$d item (%2$s) to Recently deleted</item>
+        <item quantity="other">Move %1$d items (%2$s) to Recently deleted</item>
+    </plurals>
     <string name="action_play">Play</string>
     <string name="action_pause">Pause</string>
     <string name="viewer_page">Page %1$d of %2$d</string>
@@ -174,6 +194,7 @@
     <string name="name_invalid">This name can\'t be used</string>
     <string name="operation_exists">Something with this name is already here</string>
     <string name="operation_failed">That didn\'t work. Check the storage and try again.</string>
+    <string name="file_entry_in_folder">%1$s\n%2$s</string>
     <string name="more_actions">More actions</string>
     <string name="entry_selected">Selected</string>
     <string name="select_all">Select all</string>

@@ -18,6 +18,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import com.prauga.pvot.designsystem.components.list.PvotListRow
 import com.prauga.pvot.designsystem.components.list.PvotListRowDefaults
+import java.io.File
 import org.prauga.files.R
 import org.prauga.files.core.model.FileEntry
 
@@ -29,11 +30,21 @@ fun FileEntryRow(
     modifier: Modifier = Modifier,
     selected: Boolean = false,
     onMore: ((FileEntry) -> Unit)? = null,
+    showFolder: Boolean = false,
 ) {
     PvotListRow(
         title = entry.name,
         modifier = modifier,
-        supportingText = entry.summary(),
+        supportingText =
+            if (showFolder) {
+                stringResource(
+                    R.string.file_entry_in_folder,
+                    entry.summary(),
+                    File(entry.path).parent.orEmpty(),
+                )
+            } else {
+                entry.summary()
+            },
         leading = {
             when {
                 selected -> SelectedMark()
