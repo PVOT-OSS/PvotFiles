@@ -16,6 +16,8 @@ val FileCategory.labelRes: Int
             FileCategory.Videos -> R.string.category_videos
             FileCategory.Photos -> R.string.category_photos
             FileCategory.Audio -> R.string.category_audio
+            FileCategory.Documents -> R.string.category_documents
+            FileCategory.Apps -> R.string.category_apps
         }
 
 @get:DrawableRes
@@ -26,4 +28,6 @@ val FileCategory.iconRes: Int
             FileCategory.Videos -> R.drawable.ic_video
             FileCategory.Photos -> R.drawable.ic_photo
             FileCategory.Audio -> R.drawable.ic_audio
+            FileCategory.Documents -> R.drawable.ic_document
+            FileCategory.Apps -> R.drawable.ic_android
         }

@@ -14,18 +14,21 @@ class CategoryTallyTest {
     fun addsSizesAndCountsPerCategory() {
         val tally = CategoryTally()
 
-        tally.add(FileColumns.MEDIA_TYPE_IMAGE, 10)
-        tally.add(FileColumns.MEDIA_TYPE_IMAGE, 5)
-        tally.add(FileColumns.MEDIA_TYPE_VIDEO, 100)
-        tally.add(FileColumns.MEDIA_TYPE_DOCUMENT, 7)
-        tally.add(FileColumns.MEDIA_TYPE_NONE, 3)
+        tally.add(FileColumns.MEDIA_TYPE_IMAGE, "image/jpeg", 10)
+        tally.add(FileColumns.MEDIA_TYPE_IMAGE, "image/png", 5)
+        tally.add(FileColumns.MEDIA_TYPE_VIDEO, "video/mp4", 100)
+        tally.add(FileColumns.MEDIA_TYPE_DOCUMENT, "application/pdf", 7)
+        tally.add(FileColumns.MEDIA_TYPE_NONE, CategorySelection.APK_MIME_TYPE, 20)
+        tally.add(FileColumns.MEDIA_TYPE_NONE, "application/zip", 3)
 
         assertEquals(
             listOf(
-                CategoryUsage(FileCategory.Other, 10, 2),
-                CategoryUsage(FileCategory.Videos, 100, 1),
                 CategoryUsage(FileCategory.Photos, 15, 2),
+                CategoryUsage(FileCategory.Videos, 100, 1),
                 CategoryUsage(FileCategory.Audio, 0, 0),
+                CategoryUsage(FileCategory.Documents, 7, 1),
+                CategoryUsage(FileCategory.Apps, 20, 1),
+                CategoryUsage(FileCategory.Other, 3, 1),
             ),
             tally.usage(),
         )
@@ -33,8 +36,17 @@ class CategoryTallyTest {
 
     @Test
     fun playlistsAndSubtitlesCountAsOtherFiles() {
-        assertEquals(FileCategory.Other, CategoryTally.categoryOf(FileColumns.MEDIA_TYPE_PLAYLIST))
-        assertEquals(FileCategory.Other, CategoryTally.categoryOf(FileColumns.MEDIA_TYPE_SUBTITLE))
-        assertEquals(FileCategory.Audio, CategoryTally.categoryOf(FileColumns.MEDIA_TYPE_AUDIO))
+        assertEquals(
+            FileCategory.Other,
+            CategoryTally.categoryOf(FileColumns.MEDIA_TYPE_PLAYLIST, null),
+        )
+        assertEquals(
+            FileCategory.Other,
+            CategoryTally.categoryOf(FileColumns.MEDIA_TYPE_SUBTITLE, null),
+        )
+        assertEquals(
+            FileCategory.Audio,
+            CategoryTally.categoryOf(FileColumns.MEDIA_TYPE_AUDIO, "audio/mpeg"),
+        )
     }
 }

@@ -11,8 +11,8 @@ internal class CategoryTally {
     private val sizes = LongArray(FileCategory.entries.size)
     private val counts = IntArray(FileCategory.entries.size)
 
-    fun add(mediaType: Int, sizeBytes: Long) {
-        val index = categoryOf(mediaType).ordinal
+    fun add(mediaType: Int, mimeType: String?, sizeBytes: Long) {
+        val index = categoryOf(mediaType, mimeType).ordinal
         sizes[index] += sizeBytes
         counts[index]++
     }
@@ -21,11 +21,13 @@ internal class CategoryTally {
         FileCategory.entries.map { CategoryUsage(it, sizes[it.ordinal], counts[it.ordinal]) }
 
     companion object {
-        fun categoryOf(mediaType: Int): FileCategory =
-            when (mediaType) {
-                FileColumns.MEDIA_TYPE_IMAGE -> FileCategory.Photos
-                FileColumns.MEDIA_TYPE_VIDEO -> FileCategory.Videos
-                FileColumns.MEDIA_TYPE_AUDIO -> FileCategory.Audio
+        fun categoryOf(mediaType: Int, mimeType: String?): FileCategory =
+            when {
+                mediaType == FileColumns.MEDIA_TYPE_IMAGE -> FileCategory.Photos
+                mediaType == FileColumns.MEDIA_TYPE_VIDEO -> FileCategory.Videos
+                mediaType == FileColumns.MEDIA_TYPE_AUDIO -> FileCategory.Audio
+                mediaType == FileColumns.MEDIA_TYPE_DOCUMENT -> FileCategory.Documents
+                mimeType == CategorySelection.APK_MIME_TYPE -> FileCategory.Apps
                 else -> FileCategory.Other
             }
     }

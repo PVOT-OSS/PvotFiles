@@ -37,16 +37,21 @@ constructor(
             context.contentResolver
                 .query(
                     MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY),
-                    arrayOf(FileColumns.MEDIA_TYPE, FileColumns.SIZE),
+                    arrayOf(FileColumns.MEDIA_TYPE, FileColumns.MIME_TYPE, FileColumns.SIZE),
                     "${FileColumns.MIME_TYPE} IS NOT NULL",
                     null,
                     null,
                 )
                 ?.use { cursor ->
                     val mediaType = cursor.getColumnIndexOrThrow(FileColumns.MEDIA_TYPE)
+                    val mimeType = cursor.getColumnIndexOrThrow(FileColumns.MIME_TYPE)
                     val size = cursor.getColumnIndexOrThrow(FileColumns.SIZE)
                     while (cursor.moveToNext()) {
-                        tally.add(cursor.getInt(mediaType), cursor.getLong(size))
+                        tally.add(
+                            cursor.getInt(mediaType),
+                            cursor.getString(mimeType),
+                            cursor.getLong(size),
+                        )
                     }
                 } ?: return@withContext null
             StorageUsage(totalBytes, freeBytes, tally.usage())

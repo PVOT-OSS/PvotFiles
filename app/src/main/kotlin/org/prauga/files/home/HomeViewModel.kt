@@ -52,6 +52,7 @@ constructor(
         tags.tags.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
     private val mutableVolumes = MutableStateFlow<List<Volume>>(emptyList())
     val removableVolumes: StateFlow<List<Volume>> = mutableVolumes.asStateFlow()
+    val downloadsPath: String? = storage.primaryRootPath()?.let { "$it/$DOWNLOADS_FOLDER" }
     val savedLocations: StateFlow<List<SavedLocation>> =
         locations.locations.stateIn(
             viewModelScope,
@@ -81,5 +82,6 @@ constructor(
 
     private companion object {
         const val RECENT_LIMIT = 6
+        const val DOWNLOADS_FOLDER = "Download"
     }
 }

@@ -54,8 +54,9 @@ fun StorageCard(
                 colors =
                     colors.copy(
                         segmentColors =
-                            colors.segmentColors.take(usage.categories.size) +
-                                MaterialTheme.colorScheme.outline
+                            usage.categories.indices.map {
+                                colors.segmentColors[it % colors.segmentColors.size]
+                            } + MaterialTheme.colorScheme.outline
                     ),
             )
         }

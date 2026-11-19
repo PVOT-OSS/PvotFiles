@@ -83,6 +83,7 @@ fun HomeScreen(
         tags = tags,
         volumes = volumes,
         locations = locations,
+        downloadsPath = viewModel.downloadsPath,
         onEvent = viewModel::onEvent,
         onOpenDevice = onOpenDevice,
         onOpenFolder = onOpenFolder,
@@ -104,6 +105,7 @@ private fun HomeContent(
     tags: List<Tag>,
     volumes: List<Volume>,
     locations: List<SavedLocation>,
+    downloadsPath: String?,
     onEvent: (HomeEvent) -> Unit,
     onOpenDevice: () -> Unit,
     onOpenFolder: (String) -> Unit,
@@ -220,6 +222,22 @@ private fun HomeContent(
                             iconStyle = PvotRowIconStyle.Plain,
                             chevron = PvotRowChevron.Arrow,
                         )
+                    }
+                    if (downloadsPath != null) {
+                        item {
+                            PvotPreferenceRow(
+                                title = stringResource(R.string.home_downloads),
+                                onClick = { onOpenFolder(downloadsPath) },
+                                icon = {
+                                    Icon(
+                                        painterResource(R.drawable.ic_download),
+                                        contentDescription = null,
+                                    )
+                                },
+                                iconStyle = PvotRowIconStyle.Plain,
+                                chevron = PvotRowChevron.Arrow,
+                            )
+                        }
                     }
                     volumes.forEach { volume ->
                         item {

@@ -4,8 +4,10 @@
 package org.prauga.files.core.model
 
 enum class FileCategory {
-    Other,
-    Videos,
     Photos,
+    Videos,
     Audio,
+    Documents,
+    Apps,
+    Other,
 }
