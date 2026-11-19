@@ -13,3 +13,4 @@ build/
 captures/
 local.properties
 gradle/gradle-daemon-jvm.properties
+.scratch/
