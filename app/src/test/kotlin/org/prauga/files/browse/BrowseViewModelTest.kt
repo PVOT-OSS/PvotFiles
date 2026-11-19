@@ -31,6 +31,7 @@ import org.prauga.files.core.data.FileOperationsRepository
 import org.prauga.files.core.data.SafeFolderRepository
 import org.prauga.files.core.data.StorageRepository
 import org.prauga.files.core.data.TrashRepository
+import org.prauga.files.core.model.ArchiveEntry
 import org.prauga.files.core.model.DirectoryListing
 import org.prauga.files.core.model.DisplayOptions
 import org.prauga.files.core.model.FileEntry
@@ -603,6 +604,10 @@ class BrowseViewModelTest {
             extracted += path
             return FileOperationResult.Done
         }
+
+        override suspend fun extractTo(path: String, folder: String) = FileOperationResult.Done
+
+        override suspend fun entries(path: String): List<ArchiveEntry> = emptyList()
     }
 
     private class FakeFavouritesRepository : FavouritesRepository {

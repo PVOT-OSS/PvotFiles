@@ -28,9 +28,20 @@ class ViewerActivity : PvotBaseActivity() {
         const val EXTRA_URI = "uri"
 
         private val supported =
-            setOf(FileKind.Image, FileKind.Pdf, FileKind.Text, FileKind.Video, FileKind.Audio)
+            setOf(
+                FileKind.Image,
+                FileKind.Pdf,
+                FileKind.Text,
+                FileKind.Video,
+                FileKind.Audio,
+                FileKind.Archive,
+            )
 
-        fun canView(name: String): Boolean = FileKind.of(name) in supported
+        fun canView(name: String): Boolean {
+            val kind = FileKind.of(name)
+            return kind in supported &&
+                (kind != FileKind.Archive || name.endsWith(".zip", ignoreCase = true))
+        }
 
         fun intent(context: Context, path: String): Intent =
             Intent(context, ViewerActivity::class.java).putExtra(EXTRA_PATH, path)

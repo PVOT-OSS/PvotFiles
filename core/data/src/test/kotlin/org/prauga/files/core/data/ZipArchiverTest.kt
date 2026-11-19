@@ -12,6 +12,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import org.prauga.files.core.model.ArchiveEntry
 
 class ZipArchiverTest {
     @get:Rule val folder = TemporaryFolder()
@@ -31,6 +32,19 @@ class ZipArchiverTest {
         assertEquals("alpha", File(destination, "Trip/day1/a.txt").readText())
         assertEquals("beta", File(destination, "note.txt").readText())
         assertEquals(2, created.size)
+    }
+
+    @Test
+    fun listsEntriesWithoutExtracting() {
+        val trip = folder.newFolder("Trip")
+        File(trip, "a.txt").writeText("alpha")
+        val archive = File(folder.root, "list.zip")
+        ZipArchiver.compress(listOf(trip), archive)
+
+        assertEquals(
+            listOf(ArchiveEntry("Trip/", 0, true), ArchiveEntry("Trip/a.txt", 5, false)),
+            ZipArchiver.entries(archive),
+        )
     }
 
     @Test(expected = IOException::class)

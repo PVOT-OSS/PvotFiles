@@ -80,8 +80,19 @@ fun ViewerScreen(onClose: () -> Unit, viewModel: ViewerViewModel = hiltViewModel
             is ViewerContent.Text -> content.path
             is ViewerContent.Pdf -> content.path
             is ViewerContent.Media -> content.path
+            is ViewerContent.Archive -> content.path
             null -> null
         }
+    val extracted = stringResource(R.string.viewer_extracted)
+    val failed = stringResource(R.string.operation_failed)
+    LaunchedEffect(viewModel) {
+        viewModel.effects.collect { effect ->
+            when (effect) {
+                is ViewerEffect.Extracted -> snackbar.showSnackbar(extracted.format(effect.folder))
+                ViewerEffect.Failed -> snackbar.showSnackbar(failed)
+            }
+        }
+    }
     PvotScreenScaffold(
         topBar = {
             PvotTopBar(
@@ -128,6 +139,7 @@ fun ViewerScreen(onClose: () -> Unit, viewModel: ViewerViewModel = hiltViewModel
                     is ViewerContent.Text -> TextContent(data, padding)
                     is ViewerContent.Pdf -> PdfContent(data, padding, viewModel::page)
                     is ViewerContent.Media -> MediaContent(data, padding)
+                    is ViewerContent.Archive -> ArchiveContent(data, padding, viewModel::extract)
                 }
         }
     }

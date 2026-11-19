@@ -8,6 +8,7 @@ import java.io.IOException
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
+import org.prauga.files.core.model.ArchiveEntry
 import org.prauga.files.core.model.FileOperationResult
 
 internal class LocalArchiveRepository
@@ -36,11 +37,17 @@ constructor(
             FileOperationResult.Done
         }
 
-    override suspend fun extract(path: String): FileOperationResult =
+    override suspend fun extract(path: String): FileOperationResult {
+        val parent = File(path).parentFile ?: return FileOperationResult.Failed
+        return extractTo(path, parent.path)
+    }
+
+    override suspend fun extractTo(path: String, folder: String): FileOperationResult =
         withContext(dispatcher) {
             val archive = File(path)
-            val parent = archive.parentFile ?: return@withContext FileOperationResult.Failed
-            if (!archive.isFile) return@withContext FileOperationResult.Failed
+            val parent = File(folder)
+            if (!archive.isFile || !(parent.isDirectory || parent.mkdirs()))
+                return@withContext FileOperationResult.Failed
             val destination =
                 File(
                     parent,
@@ -63,6 +70,15 @@ constructor(
             destination.mkdirs()
             mediaIndex.update(created.map { it.path })
             FileOperationResult.Done
+        }
+
+    override suspend fun entries(path: String): List<ArchiveEntry>? =
+        withContext(dispatcher) {
+            try {
+                ZipArchiver.entries(File(path))
+            } catch (e: IOException) {
+                null
+            }
         }
 
     private fun File.nameWithoutExtensionFor(): String =
