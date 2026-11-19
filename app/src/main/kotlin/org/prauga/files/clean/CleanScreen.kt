@@ -5,6 +5,7 @@ package org.prauga.files.clean
 
 import android.content.Intent
 import android.os.storage.StorageManager
+import android.provider.Settings
 import android.text.format.Formatter
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -14,11 +15,15 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -39,6 +44,7 @@ import org.prauga.files.core.model.CleanSummary
 @Composable
 fun CleanScreen(
     onOpenCategory: (CleanCategory) -> Unit,
+    onOpenUnusedApps: () -> Unit,
     bottomBar: @Composable () -> Unit,
     viewModel: CleanViewModel = hiltViewModel(),
 ) {
@@ -50,6 +56,16 @@ fun CleanScreen(
     val clearCaches =
         rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             viewModel.onEvent(CleanEvent.Refresh)
+        }
+    val context = LocalContext.current
+    var hasUsageAccess by remember { mutableStateOf(viewModel.hasUsageAccess()) }
+    LifecycleResumeEffect(viewModel) {
+        hasUsageAccess = viewModel.hasUsageAccess()
+        onPauseOrDispose {}
+    }
+    val usageAccess =
+        rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            hasUsageAccess = viewModel.hasUsageAccess()
         }
     val listState = rememberLazyListState()
     PvotScreenScaffold(
@@ -87,6 +103,35 @@ fun CleanScreen(
             }
             item {
                 PvotListGroup(Modifier.fillMaxWidth()) {
+                    item {
+                        PvotListRow(
+                            title = stringResource(R.string.clean_unused_apps),
+                            modifier = Modifier.fillMaxWidth(),
+                            supportingText =
+                                stringResource(
+                                    if (hasUsageAccess) R.string.clean_unused_apps_details
+                                    else R.string.clean_usage_access
+                                ),
+                            leading = {
+                                Icon(
+                                    painterResource(R.drawable.ic_android),
+                                    contentDescription = null,
+                                )
+                            },
+                            onClick = {
+                                if (hasUsageAccess) {
+                                    onOpenUnusedApps()
+                                } else {
+                                    usageAccess.launch(
+                                        Intent(
+                                            Settings.ACTION_USAGE_ACCESS_SETTINGS,
+                                            "package:${context.packageName}".toUri(),
+                                        )
+                                    )
+                                }
+                            },
+                        )
+                    }
                     item {
                         PvotListRow(
                             title = stringResource(R.string.clean_caches),

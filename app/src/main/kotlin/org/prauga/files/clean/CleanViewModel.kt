@@ -13,14 +13,20 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import org.prauga.files.core.data.AppsRepository
 import org.prauga.files.core.data.CleanRepository
 import org.prauga.files.core.model.CleanSummary
 
 @HiltViewModel
-class CleanViewModel @Inject constructor(private val repository: CleanRepository) : ViewModel() {
+class CleanViewModel
+@Inject
+constructor(private val repository: CleanRepository, private val apps: AppsRepository) :
+    ViewModel() {
     private val mutableState = MutableStateFlow<UiState<List<CleanSummary>>>(UiState.Loading)
     val state: StateFlow<UiState<List<CleanSummary>>> = mutableState.asStateFlow()
     private var loading: Job? = null
+
+    fun hasUsageAccess(): Boolean = apps.hasUsageAccess()
 
     fun onEvent(event: CleanEvent) {
         when (event) {

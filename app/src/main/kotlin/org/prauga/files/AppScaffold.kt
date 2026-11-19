@@ -21,6 +21,7 @@ import org.prauga.files.browse.BrowseScreen
 import org.prauga.files.category.CategoryScreen
 import org.prauga.files.clean.CleanListScreen
 import org.prauga.files.clean.CleanScreen
+import org.prauga.files.clean.UnusedAppsScreen
 import org.prauga.files.core.model.CleanCategory
 import org.prauga.files.core.model.FileCategory
 import org.prauga.files.core.model.SavedLocation
@@ -76,11 +77,18 @@ private fun AppTabs() {
 @Composable
 private fun CleanTab(bottomBar: @Composable () -> Unit) {
     var open by rememberSaveable { mutableStateOf<CleanCategory?>(null) }
+    var unusedApps by rememberSaveable { mutableStateOf(false) }
     val category = open
-    if (category != null) {
-        CleanListScreen(category, onBack = { open = null }, bottomBar = bottomBar)
-    } else {
-        CleanScreen(onOpenCategory = { open = it }, bottomBar = bottomBar)
+    when {
+        unusedApps -> UnusedAppsScreen(onBack = { unusedApps = false }, bottomBar = bottomBar)
+        category != null ->
+            CleanListScreen(category, onBack = { open = null }, bottomBar = bottomBar)
+        else ->
+            CleanScreen(
+                onOpenCategory = { open = it },
+                onOpenUnusedApps = { unusedApps = true },
+                bottomBar = bottomBar,
+            )
     }
 }
 

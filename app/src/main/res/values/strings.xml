@@ -88,6 +88,13 @@
     <string name="clean_downloads">Old downloads</string>
     <string name="clean_empty_folders">Empty folders</string>
     <string name="clean_nothing">Nothing to clean here.</string>
+    <string name="clean_unused_apps">Unused apps</string>
+    <string name="clean_unused_apps_details">Apps you haven\'t opened for 30 days</string>
+    <string name="clean_usage_access">Allow usage access so Files can find apps you don\'t use.</string>
+    <string name="clean_no_unused_apps">You\'ve used all your apps in the last 30 days.</string>
+    <string name="clean_last_used">Last used %1$s</string>
+    <string name="clean_never_used">Not used yet</string>
+    <string name="clean_uninstall">Uninstall</string>
     <string name="clean_caches">Clear app caches</string>
     <string name="clean_caches_details">Android asks before clearing temporary files apps keep.</string>
     <string name="clean_error_title">Couldn\'t check your storage</string>
