@@ -67,4 +67,6 @@ internal abstract class DataModule {
     @Binds abstract fun fileInfoRepository(repository: LocalFileInfoRepository): FileInfoRepository
 
     @Binds abstract fun archiveRepository(repository: LocalArchiveRepository): ArchiveRepository
+
+    @Binds abstract fun previewRepository(repository: LocalPreviewRepository): PreviewRepository
 }
