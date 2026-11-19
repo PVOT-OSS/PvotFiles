@@ -20,6 +20,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.prauga.files.R
 import org.prauga.files.core.model.FileEntry
+import org.prauga.files.viewer.ViewerActivity
 
 class FileLauncher(
     private val context: Context,
@@ -29,6 +30,10 @@ class FileLauncher(
     private val unavailableMessage: String,
 ) {
     fun open(file: FileEntry.File) {
+        if (ViewerActivity.canView(file.name)) {
+            start(ViewerActivity.intent(context, file.path))
+            return
+        }
         start(viewIntent(file) ?: return)
     }
 
