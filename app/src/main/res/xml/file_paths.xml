@@ -13,4 +13,7 @@
     <cache-path
         name="safe"
         path="safe-open/" />
+    <cache-path
+        name="view"
+        path="view/" />
 </paths>

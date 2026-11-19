@@ -14,4 +14,8 @@ interface PreviewRepository {
     suspend fun text(path: String): TextPreview?
 
     suspend fun openPdf(path: String): PdfPages?
+
+    suspend fun displayName(uri: String): String
+
+    suspend fun copyToCache(uri: String, name: String): String?
 }

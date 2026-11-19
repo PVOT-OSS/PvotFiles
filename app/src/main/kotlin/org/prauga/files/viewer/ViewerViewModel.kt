@@ -4,6 +4,7 @@
 package org.prauga.files.viewer
 
 import android.graphics.Bitmap
+import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -29,6 +30,7 @@ constructor(savedStateHandle: SavedStateHandle, private val previews: PreviewRep
     private var pdf: PdfPages? = null
 
     private val path: String? = savedStateHandle[ViewerActivity.EXTRA_PATH]
+    private val uri: String? = savedStateHandle[ViewerActivity.EXTRA_URI]
 
     init {
         retry()
@@ -39,7 +41,12 @@ constructor(savedStateHandle: SavedStateHandle, private val previews: PreviewRep
         viewModelScope.launch {
             pdf?.close()
             pdf = null
-            mutableState.value = path?.let { load(it) } ?: UiState.Error(message = "")
+            mutableState.value =
+                when {
+                    path != null -> load(path)
+                    uri != null -> loadUri(uri)
+                    else -> UiState.Error(message = "")
+                }
         }
     }
 
@@ -51,11 +58,22 @@ constructor(savedStateHandle: SavedStateHandle, private val previews: PreviewRep
         pdf?.close()
     }
 
-    private suspend fun load(path: String): UiState<ViewerContent> {
+    private suspend fun loadUri(uri: String): UiState<ViewerContent> {
+        val name = previews.displayName(uri)
+        return when (FileKind.of(name)) {
+            FileKind.Video -> UiState.Success(ViewerContent.Media(null, uri, name, video = true))
+            FileKind.Audio -> UiState.Success(ViewerContent.Media(null, uri, name, video = false))
+            else ->
+                previews.copyToCache(uri, name)?.let { load(it, single = true) }
+                    ?: UiState.Error(message = "")
+        }
+    }
+
+    private suspend fun load(path: String, single: Boolean = false): UiState<ViewerContent> {
         val content: ViewerContent? =
             when (FileKind.of(File(path).name)) {
                 FileKind.Image -> {
-                    val paths = previews.siblingImages(path)
+                    val paths = if (single) listOf(path) else previews.siblingImages(path)
                     ViewerContent.Images(paths, paths.indexOf(path).coerceAtLeast(0))
                 }
                 FileKind.Pdf ->
@@ -63,8 +81,20 @@ constructor(savedStateHandle: SavedStateHandle, private val previews: PreviewRep
                         pdf = pages
                         ViewerContent.Pdf(path, List(pages.pageCount, pages::aspectRatio))
                     }
-                FileKind.Video -> ViewerContent.Media(path, video = true)
-                FileKind.Audio -> ViewerContent.Media(path, video = false)
+                FileKind.Video ->
+                    ViewerContent.Media(
+                        path,
+                        Uri.fromFile(File(path)).toString(),
+                        File(path).name,
+                        video = true,
+                    )
+                FileKind.Audio ->
+                    ViewerContent.Media(
+                        path,
+                        Uri.fromFile(File(path)).toString(),
+                        File(path).name,
+                        video = false,
+                    )
                 else -> previews.text(path)?.let { ViewerContent.Text(path, it) }
             }
         return content?.let { UiState.Success(it) } ?: UiState.Error(message = "")

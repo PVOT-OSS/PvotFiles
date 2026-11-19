@@ -3,7 +3,6 @@
 
 package org.prauga.files.viewer
 
-import android.net.Uri
 import android.text.format.DateUtils
 import androidx.annotation.OptIn
 import androidx.compose.foundation.layout.Arrangement
@@ -55,7 +54,7 @@ import org.prauga.files.R
 
 @Composable
 fun MediaContent(content: ViewerContent.Media, padding: PaddingValues) {
-    val player = rememberPlayer(content.path)
+    val player = rememberPlayer(content.uri)
     var ratio by remember(player) { mutableFloatStateOf(player.videoSize.ratio()) }
     DisposableEffect(player) {
         val listener =
@@ -104,12 +103,12 @@ private fun VideoSize.ratio(): Float =
     if (width > 0 && height > 0) width * pixelWidthHeightRatio / height else 0f
 
 @Composable
-private fun rememberPlayer(path: String): ExoPlayer {
+private fun rememberPlayer(uri: String): ExoPlayer {
     val context = LocalContext.current
     val player =
-        remember(path) {
+        remember(uri) {
             ExoPlayer.Builder(context).build().apply {
-                setMediaItem(MediaItem.fromUri(Uri.fromFile(File(path))))
+                setMediaItem(MediaItem.fromUri(uri))
                 prepare()
                 playWhenReady = true
             }

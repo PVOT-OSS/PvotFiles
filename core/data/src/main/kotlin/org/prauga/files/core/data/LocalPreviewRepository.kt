@@ -3,10 +3,14 @@
 
 package org.prauga.files.core.data
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.graphics.pdf.PdfRenderer
 import android.os.ParcelFileDescriptor
+import android.provider.OpenableColumns
+import androidx.core.net.toUri
+import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
 import java.io.IOException
 import javax.inject.Inject
@@ -18,7 +22,10 @@ import org.prauga.files.core.model.TextPreview
 
 internal class LocalPreviewRepository
 @Inject
-constructor(@IoDispatcher private val dispatcher: CoroutineDispatcher) : PreviewRepository {
+constructor(
+    @ApplicationContext private val context: Context,
+    @IoDispatcher private val dispatcher: CoroutineDispatcher,
+) : PreviewRepository {
 
     override suspend fun siblingImages(path: String): List<String> =
         withContext(dispatcher) {
@@ -80,4 +87,59 @@ constructor(@IoDispatcher private val dispatcher: CoroutineDispatcher) : Preview
                 null
             }
         }
+
+    override suspend fun displayName(uri: String): String =
+        withContext(dispatcher) {
+            val name =
+                try {
+                    context.contentResolver
+                        .query(uri.toUri(), arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)
+                        ?.use { if (it.moveToFirst()) it.getString(0) else null }
+                } catch (e: SecurityException) {
+                    null
+                } catch (e: IllegalArgumentException) {
+                    null
+                }
+            SafeName.of(name ?: uri.toUri().lastPathSegment)
+        }
+
+    override suspend fun copyToCache(uri: String, name: String): String? =
+        withContext(dispatcher) {
+            val folder =
+                File(context.cacheDir, VIEW_FOLDER).apply {
+                    deleteRecursively()
+                    mkdirs()
+                }
+            val target = File(folder, SafeName.of(name))
+            try {
+                val input =
+                    context.contentResolver.openInputStream(uri.toUri()) ?: return@withContext null
+                input.use { source ->
+                    target.outputStream().use { out ->
+                        val buffer = ByteArray(BUFFER_BYTES)
+                        var total = 0L
+                        while (true) {
+                            val read = source.read(buffer)
+                            if (read < 0) break
+                            total += read
+                            if (total > MAX_COPY_BYTES) throw IOException("Too large to preview")
+                            out.write(buffer, 0, read)
+                        }
+                    }
+                }
+                target.path
+            } catch (e: IOException) {
+                target.delete()
+                null
+            } catch (e: SecurityException) {
+                target.delete()
+                null
+            }
+        }
+
+    private companion object {
+        const val VIEW_FOLDER = "view"
+        const val BUFFER_BYTES = 64 * 1024
+        const val MAX_COPY_BYTES = 100L * 1024 * 1024
+    }
 }

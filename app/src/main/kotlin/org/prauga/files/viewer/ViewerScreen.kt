@@ -85,7 +85,9 @@ fun ViewerScreen(onClose: () -> Unit, viewModel: ViewerViewModel = hiltViewModel
     PvotScreenScaffold(
         topBar = {
             PvotTopBar(
-                title = currentPath?.let { File(it).name }.orEmpty(),
+                title =
+                    (content as? ViewerContent.Media)?.name
+                        ?: currentPath?.let { File(it).name }.orEmpty(),
                 onBack = onClose,
                 compact = true,
             ) {
