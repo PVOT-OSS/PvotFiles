@@ -74,4 +74,4 @@ ships them.
 
 ## Contact
 
-Open an issue at <https://github.com/PVOT-OSS/Files/issues>.
+Open an issue at <https://github.com/PVOT-OSS/PvotFiles/issues>.

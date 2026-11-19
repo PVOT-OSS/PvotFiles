@@ -6,8 +6,8 @@ Name: Files
 Summary: "Browse, clean up and protect your files. No ads, no tracking"
 License: Apache-2.0
 AuthorName: Saalim Quadri
-SourceCode: https://github.com/PVOT-OSS/Files
-IssueTracker: https://github.com/PVOT-OSS/Files/issues
+SourceCode: https://github.com/PVOT-OSS/PvotFiles
+IssueTracker: https://github.com/PVOT-OSS/PvotFiles/issues
 Categories:
   - System
 CurrentVersion: "1.0.0"
@@ -21,7 +21,7 @@ Description: |
   It has no internet permission, no accounts, no ads and no analytics.
 
 RepoType: git
-Repo: https://github.com/PVOT-OSS/Files.git
+Repo: https://github.com/PVOT-OSS/PvotFiles.git
 
 Builds:
   - versionName: 1.0.0

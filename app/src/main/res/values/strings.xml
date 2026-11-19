@@ -211,7 +211,7 @@
     <string name="about_maintainer">Made by Saalim Quadri for PVOT-OSS</string>
     <string name="about_app">App</string>
     <string name="about_source">Source code</string>
-    <string name="about_source_summary">github.com/PVOT-OSS/Files</string>
+    <string name="about_source_summary">github.com/PVOT-OSS/PvotFiles</string>
     <string name="about_report_bug">Report a bug</string>
     <string name="about_report_bug_summary">Open an issue on GitHub</string>
     <string name="about_licence">Licence</string>

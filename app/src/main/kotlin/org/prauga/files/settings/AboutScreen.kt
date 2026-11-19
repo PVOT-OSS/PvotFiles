@@ -30,7 +30,7 @@ import org.prauga.files.R
 
 private data class Link(@StringRes val title: Int, @StringRes val summary: Int, val url: String)
 
-private const val SOURCE = "https://github.com/PVOT-OSS/Files"
+private const val SOURCE = "https://github.com/PVOT-OSS/PvotFiles"
 
 private val appLinks =
     listOf(

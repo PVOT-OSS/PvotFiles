@@ -4,7 +4,7 @@
 version = 1
 SPDX-PackageName = "Files"
 SPDX-PackageSupplier = "Saalim Quadri <danascape@gmail.com>"
-SPDX-PackageDownloadLocation = "https://github.com/PVOT-OSS/Files"
+SPDX-PackageDownloadLocation = "https://github.com/PVOT-OSS/PvotFiles"
 
 [[annotations]]
 path = ["gradle/wrapper/**", "gradlew", "gradlew.bat"]
