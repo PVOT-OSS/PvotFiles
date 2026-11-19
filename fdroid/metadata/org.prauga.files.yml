@@ -1,0 +1,37 @@
+# SPDX-FileCopyrightText: 2026 Saalim Quadri <danascape@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+
+PackageName: org.prauga.files
+Name: Files
+Summary: "Browse, clean up and protect your files. No ads, no tracking"
+License: Apache-2.0
+AuthorName: Saalim Quadri
+SourceCode: https://github.com/PVOT-OSS/Files
+IssueTracker: https://github.com/PVOT-OSS/Files/issues
+Categories:
+  - System
+CurrentVersion: "1.0.0"
+CurrentVersionCode: 10000
+Description: |
+  Files shows what is on your phone's storage and helps you keep it tidy:
+  browse folders, SD cards and USB drives, select and act on many files at
+  once, view photos, PDFs and text, play video and music, compress and
+  extract ZIP archives, clean up large and duplicate files, search with
+  filters and keep private files in an encrypted, PIN-locked Safe folder.
+  It has no internet permission, no accounts, no ads and no analytics.
+
+RepoType: git
+Repo: https://github.com/PVOT-OSS/Files.git
+
+Builds:
+  - versionName: 1.0.0
+    versionCode: 10000
+    commit: v1.0.0
+    subdir: app
+    srclibs:
+      - PvotLib@v1.0.0
+    prebuild: sed -i -e 's/^agp = .*/agp = "9.5.1"/' $$PvotLib$$/gradle/libs.versions.toml
+    gradle:
+      - yes
+    gradleprops:
+      - pvotLibDir=$$PvotLib$$
