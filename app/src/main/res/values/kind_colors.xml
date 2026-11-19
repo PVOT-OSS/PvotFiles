@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     SPDX-FileCopyrightText: 2026 Saalim Quadri <danascape@gmail.com>
+     SPDX-License-Identifier: Apache-2.0
+-->
+<resources>
+    <color name="kind_pdf">#FFE53935</color>
+    <color name="kind_document">#FF4285F4</color>
+    <color name="kind_spreadsheet">#FF34A853</color>
+    <color name="kind_presentation">#FFD84315</color>
+    <color name="kind_web">#FFFB8C00</color>
+    <color name="kind_text">#FF78909C</color>
+</resources>

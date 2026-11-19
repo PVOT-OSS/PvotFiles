@@ -39,7 +39,7 @@ fun FileEntryRow(
                 selected -> SelectedMark()
                 entry is FileEntry.File ->
                     FileThumbnail(entry, PvotListRowDefaults.LeadingSize) {
-                        EntryIcon(R.drawable.ic_file)
+                        FileKindIcon(entry.name)
                     }
                 else -> EntryIcon(R.drawable.ic_folder)
             }

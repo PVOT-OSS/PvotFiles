@@ -58,9 +58,7 @@ fun FileEntryTile(
     ) {
         val icon: @Composable () -> Unit = {
             Icon(
-                painterResource(
-                    if (entry is FileEntry.Directory) R.drawable.ic_folder else R.drawable.ic_file
-                ),
+                painterResource(R.drawable.ic_folder),
                 contentDescription = null,
                 modifier = Modifier.size(TileIconSize),
                 tint = MaterialTheme.colorScheme.primary,
@@ -71,7 +69,8 @@ fun FileEntryTile(
                 Box(Modifier.size(TileIconSize), contentAlignment = Alignment.Center) {
                     SelectedMark()
                 }
-            entry is FileEntry.File -> FileThumbnail(entry, TileIconSize, icon)
+            entry is FileEntry.File ->
+                FileThumbnail(entry, TileIconSize) { FileKindIcon(entry.name, TileIconSize) }
             else -> icon()
         }
         Text(
