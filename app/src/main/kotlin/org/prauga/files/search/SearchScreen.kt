@@ -5,6 +5,7 @@ package org.prauga.files.search
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -36,6 +37,8 @@ import com.prauga.pvot.designsystem.components.PvotScreen
 import com.prauga.pvot.designsystem.components.PvotScreenDefaults
 import com.prauga.pvot.designsystem.components.PvotScreenScaffold
 import com.prauga.pvot.designsystem.components.PvotSnackbarHost
+import com.prauga.pvot.designsystem.components.list.PvotListGroup
+import com.prauga.pvot.designsystem.components.list.PvotListRow
 import com.prauga.pvot.designsystem.components.textfield.PvotTextField
 import com.prauga.pvot.designsystem.navigation.LocalPvotNavBarSizes
 import com.prauga.pvot.designsystem.navigation.PvotTopBar
@@ -76,6 +79,7 @@ private fun SearchContent(
         },
         bottomBar = {
             Column(Modifier.imePadding()) {
+                SearchFilterRow(state.filters, onEvent)
                 SearchField(state.query, onEvent)
                 if (!typing) bottomBar()
             }
@@ -91,7 +95,13 @@ private fun SearchContent(
     ) { padding ->
         when (val found = state.results) {
             null ->
-                CenteredContent(padding) { PvotEmptyContent(stringResource(R.string.search_hint)) }
+                if (state.history.isEmpty()) {
+                    CenteredContent(padding) {
+                        PvotEmptyContent(stringResource(R.string.search_hint))
+                    }
+                } else {
+                    History(state.history, padding, onEvent)
+                }
             UiState.Loading -> CenteredContent(padding) { PvotLoadingContent() }
             is UiState.Error ->
                 CenteredContent(padding) {
@@ -119,7 +129,10 @@ private fun SearchContent(
                         items(found.data, key = FileEntry.File::path) { file ->
                             FileEntryRow(
                                 file,
-                                onClick = { launcher.open(file) },
+                                onClick = {
+                                    onEvent(SearchEvent.ResultOpened)
+                                    launcher.open(file)
+                                },
                                 onLongClick = { actionsPath = it.path },
                                 modifier = Modifier.fillMaxWidth(),
                                 onMore = { actionsPath = it.path },
@@ -157,4 +170,46 @@ private fun SearchField(query: String, onEvent: (SearchEvent) -> Unit) {
     )
 }
 
-private val SearchFieldHeight = 72.dp
+@Composable
+private fun History(queries: List<String>, padding: PaddingValues, onEvent: (SearchEvent) -> Unit) {
+    PvotScreen(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding =
+            PvotScreenDefaults.contentPadding(
+                top = padding.calculateTopPadding(),
+                bottom = LocalPvotNavBarSizes.current.barHeight + SearchFieldHeight,
+            ),
+    ) {
+        item {
+            PvotListGroup(Modifier.fillMaxWidth(), title = stringResource(R.string.search_recent)) {
+                queries.forEach { query ->
+                    item {
+                        PvotListRow(
+                            title = query,
+                            modifier = Modifier.fillMaxWidth(),
+                            leading = {
+                                Icon(
+                                    painterResource(R.drawable.ic_history),
+                                    contentDescription = null,
+                                )
+                            },
+                            onClick = { onEvent(SearchEvent.HistoryPicked(query)) },
+                        )
+                    }
+                }
+                item {
+                    PvotListRow(
+                        title = stringResource(R.string.search_clear_history),
+                        modifier = Modifier.fillMaxWidth(),
+                        leading = {
+                            Icon(painterResource(R.drawable.ic_clear), contentDescription = null)
+                        },
+                        onClick = { onEvent(SearchEvent.ClearHistory) },
+                    )
+                }
+            }
+        }
+    }
+}
+
+private val SearchFieldHeight = 120.dp

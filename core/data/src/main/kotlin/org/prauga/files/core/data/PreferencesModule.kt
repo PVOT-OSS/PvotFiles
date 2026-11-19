@@ -40,4 +40,10 @@ internal object PreferencesModule {
     @LocationsStore
     fun locations(@ApplicationContext context: Context): DataStore<Preferences> =
         PreferenceDataStoreFactory.create { context.preferencesDataStoreFile("locations") }
+
+    @Provides
+    @Singleton
+    @SearchHistoryStore
+    fun searchHistory(@ApplicationContext context: Context): DataStore<Preferences> =
+        PreferenceDataStoreFactory.create { context.preferencesDataStoreFile("search_history") }
 }

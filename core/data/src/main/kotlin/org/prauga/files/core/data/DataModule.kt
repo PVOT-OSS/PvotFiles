@@ -71,4 +71,9 @@ internal abstract class DataModule {
     @Binds abstract fun previewRepository(repository: LocalPreviewRepository): PreviewRepository
 
     @Binds abstract fun cleanRepository(repository: LocalCleanRepository): CleanRepository
+
+    @Binds
+    abstract fun searchHistoryRepository(
+        repository: DataStoreSearchHistoryRepository
+    ): SearchHistoryRepository
 }

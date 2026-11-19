@@ -22,8 +22,14 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import org.prauga.files.core.data.SearchHistoryRepository
 import org.prauga.files.core.data.SearchRepository
+import org.prauga.files.core.model.FileCategory
 import org.prauga.files.core.model.FileEntry
+import org.prauga.files.core.model.ModifiedWithin
+import org.prauga.files.core.model.SearchFilters
+import org.prauga.files.core.model.SizeRange
 
 @HiltViewModel
 class SearchViewModel
@@ -31,26 +37,43 @@ class SearchViewModel
 constructor(
     private val savedStateHandle: SavedStateHandle,
     private val repository: SearchRepository,
+    private val history: SearchHistoryRepository,
 ) : ViewModel() {
     private val query: StateFlow<String> = savedStateHandle.getStateFlow(KEY_QUERY, "")
+    private val category = savedStateHandle.getStateFlow<String?>(KEY_CATEGORY, null)
+    private val modified = savedStateHandle.getStateFlow(KEY_MODIFIED, ModifiedWithin.Any.name)
+    private val size = savedStateHandle.getStateFlow(KEY_SIZE, SizeRange.Any.name)
     private val attempt = MutableStateFlow(0)
+
+    private val filters =
+        combine(category, modified, size) { category, modified, size ->
+            SearchFilters(
+                category =
+                    category?.let { name -> FileCategory.entries.firstOrNull { it.name == name } },
+                modified =
+                    ModifiedWithin.entries.firstOrNull { it.name == modified }
+                        ?: ModifiedWithin.Any,
+                size = SizeRange.entries.firstOrNull { it.name == size } ?: SizeRange.Any,
+            )
+        }
 
     @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
     private val results =
         combine(
                 query.map { it.trim() }.distinctUntilChanged().debounce(DEBOUNCE_MILLIS),
+                filters,
                 attempt,
-            ) { trimmed, _ ->
-                trimmed
+            ) { trimmed, current, _ ->
+                trimmed to current
             }
-            .flatMapLatest { trimmed ->
-                if (trimmed.isEmpty()) {
+            .flatMapLatest { (trimmed, current) ->
+                if (trimmed.isEmpty() && current.isDefault) {
                     flowOf(null)
                 } else {
                     flow<UiState<List<FileEntry.File>>?> {
                         emit(UiState.Loading)
                         emit(
-                            repository.search(trimmed)?.let { UiState.Success(it) }
+                            repository.search(trimmed, current)?.let { UiState.Success(it) }
                                 ?: UiState.Error(message = "")
                         )
                     }
@@ -58,8 +81,13 @@ constructor(
             }
 
     val state: StateFlow<SearchUiState> =
-        combine(query, results) { text, found ->
-                SearchUiState(text, found.takeIf { text.isNotBlank() })
+        combine(query, results, filters, history.queries) { text, found, current, past ->
+                SearchUiState(
+                    text,
+                    found.takeIf { text.isNotBlank() || !current.isDefault },
+                    current,
+                    past,
+                )
             }
             .stateIn(
                 viewModelScope,
@@ -72,11 +100,23 @@ constructor(
             is SearchEvent.QueryChanged -> savedStateHandle[KEY_QUERY] = event.query
             SearchEvent.Clear -> savedStateHandle[KEY_QUERY] = ""
             SearchEvent.Retry -> attempt.value++
+            is SearchEvent.CategoryChanged -> savedStateHandle[KEY_CATEGORY] = event.category?.name
+            is SearchEvent.ModifiedChanged -> savedStateHandle[KEY_MODIFIED] = event.modified.name
+            is SearchEvent.SizeChanged -> savedStateHandle[KEY_SIZE] = event.size.name
+            SearchEvent.ResultOpened -> viewModelScope.launch { history.add(query.value) }
+            is SearchEvent.HistoryPicked -> {
+                savedStateHandle[KEY_QUERY] = event.query
+                viewModelScope.launch { history.add(event.query) }
+            }
+            SearchEvent.ClearHistory -> viewModelScope.launch { history.clear() }
         }
     }
 
     private companion object {
         const val KEY_QUERY = "query"
+        const val KEY_CATEGORY = "search_category"
+        const val KEY_MODIFIED = "search_modified"
+        const val KEY_SIZE = "search_size"
         const val DEBOUNCE_MILLIS = 300L
     }
 }

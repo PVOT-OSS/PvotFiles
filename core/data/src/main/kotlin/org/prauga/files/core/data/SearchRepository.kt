@@ -4,7 +4,11 @@
 package org.prauga.files.core.data
 
 import org.prauga.files.core.model.FileEntry
+import org.prauga.files.core.model.SearchFilters
 
 interface SearchRepository {
-    suspend fun search(query: String): List<FileEntry.File>?
+    suspend fun search(
+        query: String,
+        filters: SearchFilters = SearchFilters(),
+    ): List<FileEntry.File>?
 }

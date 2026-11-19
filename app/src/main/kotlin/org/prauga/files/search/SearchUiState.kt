@@ -5,5 +5,11 @@ package org.prauga.files.search
 
 import com.prauga.pvot.coreui.UiState
 import org.prauga.files.core.model.FileEntry
+import org.prauga.files.core.model.SearchFilters
 
-data class SearchUiState(val query: String, val results: UiState<List<FileEntry.File>>?)
+data class SearchUiState(
+    val query: String,
+    val results: UiState<List<FileEntry.File>>?,
+    val filters: SearchFilters = SearchFilters(),
+    val history: List<String> = emptyList(),
+)

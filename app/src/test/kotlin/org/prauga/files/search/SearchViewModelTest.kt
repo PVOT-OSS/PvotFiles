@@ -7,6 +7,8 @@ import androidx.lifecycle.SavedStateHandle
 import com.prauga.pvot.coreui.UiState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -19,8 +21,11 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.prauga.files.core.data.SearchHistoryRepository
 import org.prauga.files.core.data.SearchRepository
+import org.prauga.files.core.model.FileCategory
 import org.prauga.files.core.model.FileEntry
+import org.prauga.files.core.model.SearchFilters
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SearchViewModelTest {
@@ -89,8 +94,50 @@ class SearchViewModelTest {
 
     private fun TestScope.viewModel(repository: SearchRepository): SearchViewModel {
         Dispatchers.setMain(UnconfinedTestDispatcher(testScheduler))
-        return SearchViewModel(SavedStateHandle(), repository)
+        return SearchViewModel(SavedStateHandle(), repository, history)
     }
+
+    @Test
+    fun aFilterAloneSearchesWithoutAQuery() = runTest {
+        val repository = FakeSearchRepository(mapOf("" to listOf(report)))
+        val viewModel = viewModel(repository)
+        collect(viewModel)
+
+        viewModel.onEvent(SearchEvent.CategoryChanged(FileCategory.Documents))
+        advanceTimeBy(500)
+
+        assertEquals(SearchFilters(category = FileCategory.Documents), repository.filters.last())
+        assertEquals(UiState.Success(listOf(report)), viewModel.state.value.results)
+    }
+
+    @Test
+    fun openingAResultRemembersTheQuery() = runTest {
+        val viewModel = viewModel(FakeSearchRepository())
+        collect(viewModel)
+
+        viewModel.onEvent(SearchEvent.QueryChanged("trip"))
+        viewModel.onEvent(SearchEvent.ResultOpened)
+        advanceTimeBy(500)
+        assertEquals(listOf("trip"), viewModel.state.value.history)
+
+        viewModel.onEvent(SearchEvent.ClearHistory)
+        advanceTimeBy(500)
+        assertEquals(emptyList<String>(), viewModel.state.value.history)
+    }
+
+    private val history =
+        object : SearchHistoryRepository {
+            val saved = MutableStateFlow(emptyList<String>())
+            override val queries: Flow<List<String>> = saved
+
+            override suspend fun add(query: String) {
+                saved.value = listOf(query) + saved.value
+            }
+
+            override suspend fun clear() {
+                saved.value = emptyList()
+            }
+        }
 
     private fun TestScope.collect(viewModel: SearchViewModel) {
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
@@ -103,8 +150,10 @@ class SearchViewModelTest {
         private val available: Boolean = true,
     ) : SearchRepository {
         val queries = mutableListOf<String>()
+        val filters = mutableListOf<SearchFilters>()
 
-        override suspend fun search(query: String): List<FileEntry.File>? {
+        override suspend fun search(query: String, filters: SearchFilters): List<FileEntry.File>? {
+            this.filters += filters
             queries += query
             return if (available) results[query].orEmpty() else null
         }
