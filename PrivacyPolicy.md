@@ -39,6 +39,8 @@ delete them forever.
 - **Read photo locations** (`ACCESS_MEDIA_LOCATION`, only if you allow it from a photo's Info):
   shows where a photo was taken in its Info. The place stays on your phone; tapping it opens your
   maps app.
+- **Keep playing audio** (`FOREGROUND_SERVICE_MEDIA_PLAYBACK`): audio you open keeps playing after
+  you leave the player, with controls in the notification and on the lock screen.
 - **Run in the foreground and show notifications** (`FOREGROUND_SERVICE`,
   `FOREGROUND_SERVICE_DATA_SYNC`, `POST_NOTIFICATIONS`): lets a copy or move you started keep going
   after you leave the app, with its progress in a notification. Android asks you before the app may

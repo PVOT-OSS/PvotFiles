@@ -24,6 +24,7 @@ android {
 
 dependencies {
     implementation(libs.media3.exoplayer)
+    implementation(libs.media3.session)
     implementation(libs.media3.ui.compose)
     implementation(project(":core:data"))
     implementation(libs.pvot.design.system)

@@ -3,6 +3,7 @@
 
 package org.prauga.files.viewer
 
+import android.content.ComponentName
 import android.text.format.DateUtils
 import androidx.annotation.OptIn
 import androidx.compose.foundation.layout.Arrangement
@@ -37,13 +38,17 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.common.VideoSize
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.session.MediaController
+import androidx.media3.session.SessionToken
 import androidx.media3.ui.compose.PlayerSurface
 import androidx.media3.ui.compose.SURFACE_TYPE_TEXTURE_VIEW
 import com.prauga.pvot.designsystem.components.progress.PvotLinearProgress
@@ -51,9 +56,79 @@ import com.prauga.pvot.designsystem.theme.PvotSpacing
 import java.io.File
 import kotlinx.coroutines.delay
 import org.prauga.files.R
+import org.prauga.files.playback.PlaybackService
 
 @Composable
 fun MediaContent(content: ViewerContent.Media, padding: PaddingValues) {
+    if (content.video) {
+        VideoContent(content, padding)
+    } else {
+        AudioContent(content, padding)
+    }
+}
+
+@Composable
+private fun AudioContent(content: ViewerContent.Media, padding: PaddingValues) {
+    val context = LocalContext.current
+    var controller by remember { mutableStateOf<MediaController?>(null) }
+    DisposableEffect(content.uri) {
+        val future =
+            MediaController.Builder(
+                    context,
+                    SessionToken(context, ComponentName(context, PlaybackService::class.java)),
+                )
+                .buildAsync()
+        future.addListener(
+            {
+                val connected = future.get()
+                val current = connected.currentMediaItem?.localConfiguration?.uri?.toString()
+                if (current != content.uri) {
+                    connected.setMediaItem(
+                        MediaItem.Builder()
+                            .setUri(content.uri)
+                            .setMediaMetadata(
+                                MediaMetadata.Builder().setTitle(content.name).build()
+                            )
+                            .build()
+                    )
+                    connected.prepare()
+                    connected.play()
+                }
+                controller = connected
+            },
+            ContextCompat.getMainExecutor(context),
+        )
+        onDispose {
+            controller = null
+            MediaController.releaseFuture(future)
+        }
+    }
+    CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onSurface) {
+        Column(Modifier.fillMaxSize().padding(top = padding.calculateTopPadding())) {
+            Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(PvotSpacing.M),
+                ) {
+                    Icon(
+                        painterResource(R.drawable.ic_audio),
+                        contentDescription = null,
+                        modifier = Modifier.size(AudioIconSize),
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                    Text(
+                        File(content.name).nameWithoutExtension,
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                }
+            }
+            controller?.let { Controls(it) }
+        }
+    }
+}
+
+@Composable
+private fun VideoContent(content: ViewerContent.Media, padding: PaddingValues) {
     val player = rememberPlayer(content.uri)
     var ratio by remember(player) { mutableFloatStateOf(player.videoSize.ratio()) }
     DisposableEffect(player) {
@@ -124,7 +199,7 @@ private fun Surface(player: ExoPlayer, modifier: Modifier) {
 }
 
 @Composable
-private fun Controls(player: ExoPlayer) {
+private fun Controls(player: Player) {
     var playing by remember { mutableStateOf(player.isPlaying) }
     var position by remember { mutableLongStateOf(0L) }
     var duration by remember { mutableLongStateOf(0L) }
