@@ -76,4 +76,6 @@ internal abstract class DataModule {
     abstract fun searchHistoryRepository(
         repository: DataStoreSearchHistoryRepository
     ): SearchHistoryRepository
+
+    @Binds abstract fun appsRepository(repository: LocalAppsRepository): AppsRepository
 }

@@ -31,6 +31,11 @@ delete them forever.
   any time. The app reads and changes files only when you ask it to, and sends nothing anywhere.
 - **Install apps** (`REQUEST_INSTALL_PACKAGES`): when you open an APK file, Files hands it to
   Android's installer, which asks you to confirm. Nothing is installed without your confirmation.
+- **Find unused apps** (`PACKAGE_USAGE_STATS`, only if you allow usage access in Settings): reads
+  when your apps were last used and how much space they take, to list apps you haven't opened for
+  30 days in Clean. Files sees only apps with a launcher icon. This stays on your phone.
+- **Uninstall apps** (`REQUEST_DELETE_PACKAGES`): from the unused apps list; Android asks you to
+  confirm every uninstall.
 - **Read photo locations** (`ACCESS_MEDIA_LOCATION`, only if you allow it from a photo's Info):
   shows where a photo was taken in its Info. The place stays on your phone; tapping it opens your
   maps app.
