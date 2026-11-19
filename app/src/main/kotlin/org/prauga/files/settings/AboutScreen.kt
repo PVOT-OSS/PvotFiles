@@ -57,6 +57,11 @@ private val libraries =
         ),
         Link(R.string.about_lib_kotlin, R.string.about_lib_apache, "https://kotlinlang.org/"),
         Link(R.string.about_lib_dagger, R.string.about_lib_apache, "https://dagger.dev/hilt/"),
+        Link(
+            R.string.about_lib_tink,
+            R.string.about_lib_apache,
+            "https://developers.google.com/tink",
+        ),
         Link(R.string.about_lib_icons, R.string.about_lib_apache, "https://fonts.google.com/icons"),
     )
 

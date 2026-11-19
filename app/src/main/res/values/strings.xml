@@ -219,9 +219,10 @@
     <string name="about_libraries">Open-source licences</string>
     <string name="about_lib_apache">Apache License 2.0</string>
     <string name="about_lib_pvotlib">PvotLib</string>
-    <string name="about_lib_androidx">AndroidX and Jetpack Compose</string>
+    <string name="about_lib_androidx">AndroidX, Jetpack Compose and Media3</string>
     <string name="about_lib_kotlin">Kotlin and kotlinx.coroutines</string>
     <string name="about_lib_dagger">Dagger and Hilt</string>
+    <string name="about_lib_tink">Tink (Safe folder encryption)</string>
     <string name="about_lib_icons">Material icons</string>
     <string name="tag_empty">Nothing has this tag</string>
     <string name="tag_delete">Delete tag</string>
