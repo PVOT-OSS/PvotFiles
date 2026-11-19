@@ -3,4 +3,8 @@
      SPDX-FileCopyrightText: 2026 Saalim Quadri <danascape@gmail.com>
      SPDX-License-Identifier: Apache-2.0
 -->
-<full-backup-content />
+<full-backup-content>
+    <exclude domain="file" path="safe/" />
+    <exclude domain="file" path="datastore/safe_folder.preferences_pb" />
+    <exclude domain="sharedpref" path="safe_folder_keyset.xml" />
+</full-backup-content>

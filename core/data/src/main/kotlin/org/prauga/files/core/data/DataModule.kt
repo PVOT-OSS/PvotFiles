@@ -78,4 +78,9 @@ internal abstract class DataModule {
     ): SearchHistoryRepository
 
     @Binds abstract fun appsRepository(repository: LocalAppsRepository): AppsRepository
+
+    @Binds abstract fun safeCipher(cipher: TinkSafeCipher): SafeCipher
+
+    @Binds
+    abstract fun safeFolderRepository(repository: LocalSafeFolderRepository): SafeFolderRepository
 }

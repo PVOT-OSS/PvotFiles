@@ -14,5 +14,6 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.exifinterface)
+    implementation(libs.tink.android)
     testImplementation(libs.kotlinx.coroutines.test)
 }

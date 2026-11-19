@@ -10,4 +10,7 @@
     <root-path
         name="volumes"
         path="storage" />
+    <cache-path
+        name="safe"
+        path="safe-open/" />
 </paths>

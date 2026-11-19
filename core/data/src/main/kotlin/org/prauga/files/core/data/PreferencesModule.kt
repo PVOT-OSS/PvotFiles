@@ -46,4 +46,10 @@ internal object PreferencesModule {
     @SearchHistoryStore
     fun searchHistory(@ApplicationContext context: Context): DataStore<Preferences> =
         PreferenceDataStoreFactory.create { context.preferencesDataStoreFile("search_history") }
+
+    @Provides
+    @Singleton
+    @SafeFolderStore
+    fun safeFolder(@ApplicationContext context: Context): DataStore<Preferences> =
+        PreferenceDataStoreFactory.create { context.preferencesDataStoreFile("safe_folder") }
 }
